@@ -1,0 +1,72 @@
+#!/bin/bash
+
+utilization_nodes() {
+    nodes=$(kubectl get node --no-headers -o custom-columns=NAME:.metadata.name)
+
+    for node in $nodes; do
+      echo "Node: $node"
+      kubectl describe node "$node" | grep Allocated -A 5 | grep -ve Event -ve Allocated -ve percent -ve -- ; 
+      echo
+    done
+}
+
+utilization_cluster() {
+
+    local pods_all_requests
+    local total_cpu_requests_m
+    local total_memory_requests_kb
+    local node_all_allocatable
+    local total_cpu_capacity_m
+    local total_memory_capacity_kb
+    local avg_percent_mem
+    local avg_percent_cpu
+
+    pods_all_requests=$(kubectl get pod --all-namespaces -o=jsonpath="{range .items[*]}{range .spec.containers[*]}  {.resources.requests.cpu}{'\t'}{.resources.requests.memory}{'\n'}{end}{'\n'}{end}")
+    total_cpu_requests_m=$(echo "${pods_all_requests}" | \
+        awk \
+      'BEGIN{IGNORECASE = 1}
+       $1 ~ /[0-9]$/{s+=$1*1000;next};
+       $1 ~ /m?$/{s+=$1;next};
+       END {printf "%.0f\n", s}'
+       )
+        
+    total_memory_requests_kb=$(echo "${pods_all_requests}" | \
+        awk \
+      'BEGIN{IGNORECASE = 1}
+       $2 ~ /M(i)?$/{s+=$2*1024; next};
+       $2 ~ /G(i)?$/{s+=$2*1048576; next};
+       $2 ~ /T(i)?$/{s+=$2*1073741824; next};
+       END {printf "%.0f\n", s}'
+       )
+
+    node_all_allocatable=$(kubectl get nodes -o=jsonpath="{range .items[*]} {.status.allocatable.cpu}{'\t'}{.status.allocatable.memory}{'\n'}{end}")
+    total_cpu_capacity_m=$(echo "${node_all_allocatable}" | \
+        awk \
+      'BEGIN{IGNORECASE = 1}
+       $1 ~ /[0-9]$/{s+=$1*1000;next};
+       END {printf "%.0f\n", s}'
+       )
+
+    total_memory_capacity_kb=$(echo "${node_all_allocatable}" | \
+        awk \
+      'BEGIN{IGNORECASE = 1}
+       $2 ~ /Ki?$/{s+=$2; next};
+       END {printf "%.0f\n", s}'
+       )
+ 
+    avg_percent_mem=$(( total_memory_requests_kb * 100 / total_memory_capacity_kb ))
+    avg_percent_cpu=$(( total_cpu_requests_m * 100 / total_cpu_capacity_m ))
+	echo "Cluster usage: ${avg_percent_cpu}% CPU, ${avg_percent_mem}% memory."
+}
+
+if [[ "$1" == "version" ]]; then
+    echo "1.0.0"
+    exit 0
+fi
+
+if [[ "$1" == "node" ]] || [[ "$1" == "nodes" ]]; then
+    utilization_nodes
+    exit 0
+fi
+
+utilization_cluster 
