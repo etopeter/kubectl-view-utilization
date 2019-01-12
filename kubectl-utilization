@@ -1,15 +1,5 @@
 #!/bin/bash
 
-utilization_nodes() {
-    nodes=$(kubectl get node --no-headers -o custom-columns=NAME:.metadata.name)
-
-    for node in $nodes; do
-      echo "Node: $node"
-      kubectl describe node "$node" | grep Allocated -A 5 | grep -ve Event -ve Allocated -ve percent -ve -- ; 
-      echo
-    done
-}
-
 utilization_cluster() {
 
     local pods_all_requests
@@ -61,11 +51,6 @@ utilization_cluster() {
 
 if [[ "$1" == "version" ]]; then
     echo "1.0.0"
-    exit 0
-fi
-
-if [[ "$1" == "node" ]] || [[ "$1" == "nodes" ]]; then
-    utilization_nodes
     exit 0
 fi
 
