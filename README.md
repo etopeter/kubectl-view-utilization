@@ -27,3 +27,10 @@ kubectl utilization
 cores: 3.2/20 cores (16%)
 memory: 7.7 GiB/76 GiB (10%)
 ```
+Check utilization for specific namespace:
+
+```shell
+kubectl utilization -n kube-system
+cores 0.5/20 (2%)
+memory 5 GiB/76 GiB (6%)
+```
