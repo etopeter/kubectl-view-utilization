@@ -8,8 +8,8 @@ copy kubectl-utilization to location in your `$PATH`. This tool is written in BA
 ## Usage
 This plugin should be invoked with kubectl command and will appear as subcommand. It will use existing context configured in `$KUBECONFIG` file.
 
-`shell
+```shell
 kubectl utilization                          
 cores 3.2/20 (16%)
 memory 7.7GiB/76GiB (10%)
-`
+```
