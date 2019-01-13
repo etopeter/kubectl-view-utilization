@@ -1,10 +1,25 @@
 #!/bin/bash
 
+memory_prettify() {
+    awk \
+    '{sum=$1 ;
+    hum[1024**2]="GiB";
+    hum[1024**1]="Mb";
+    for (x=1024**3; x>=1024; x/=1024){ 
+        if (sum>=x) { 
+            printf "%.2g%s\n",sum/x,hum[x];break 
+        } 
+    }
+    }'
+}
+
 utilization_cluster() {
 
     local pods_all_requests
     local total_cpu_requests_m
+    local total_cpu_requests_pretty
     local total_memory_requests_kb
+    local total_memory_requests_pretty
     local node_all_allocatable
     local total_cpu_capacity_m
     local total_memory_capacity_kb
@@ -15,9 +30,9 @@ utilization_cluster() {
     total_cpu_requests_m=$(echo "${pods_all_requests}" | \
         awk \
       'BEGIN{IGNORECASE = 1}
-       $1 ~ /[0-9]$/{s+=$1*1000;next};
-       $1 ~ /m?$/{s+=$1;next};
-       END {printf "%.0f\n", s}'
+       $1 ~ /[0-9]$/{s+=$1;next};
+       $1 ~ /m?$/{s+=$1/1000;next};
+       END {printf "%.2g\n", s}'
        )
         
     total_memory_requests_kb=$(echo "${pods_all_requests}" | \
@@ -33,8 +48,8 @@ utilization_cluster() {
     total_cpu_capacity_m=$(echo "${node_all_allocatable}" | \
         awk \
       'BEGIN{IGNORECASE = 1}
-       $1 ~ /[0-9]$/{s+=$1*1000;next};
-       END {printf "%.0f\n", s}'
+       $1 ~ /[0-9]$/{s+=$1;next};
+       END {printf "%.2g\n", s}'
        )
 
     total_memory_capacity_kb=$(echo "${node_all_allocatable}" | \
@@ -44,9 +59,14 @@ utilization_cluster() {
        END {printf "%.0f\n", s}'
        )
  
-    avg_percent_mem=$(( total_memory_requests_kb * 100 / total_memory_capacity_kb ))
-    avg_percent_cpu=$(( total_cpu_requests_m * 100 / total_cpu_capacity_m ))
-	echo "Cluster usage: ${avg_percent_cpu}% CPU, ${avg_percent_mem}% memory."
+    avg_percent_cpu=$(echo "${total_cpu_requests_m} * 100 / ${total_cpu_capacity_m}" | bc )
+    avg_percent_mem=$(echo "${total_memory_requests_kb} * 100 / ${total_memory_capacity_kb}" | bc )
+
+    total_memory_requests_pretty=$(echo "${total_memory_requests_kb}" | memory_prettify)
+    total_memory_capacity_pretty=$(echo "${total_memory_capacity_kb}" | memory_prettify)
+
+    echo "cores ${total_cpu_requests_m}/${total_cpu_capacity_m} (${avg_percent_cpu}%)"
+    echo "memory ${total_memory_requests_pretty}/${total_memory_capacity_pretty} (${avg_percent_mem}%)"
 }
 
 if [[ "$1" == "version" ]]; then
