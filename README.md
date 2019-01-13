@@ -1,6 +1,8 @@
 # kubectl-utilization
-This repository implements kubectl plugin for showing cluster resource utilization. This is can be used to estimate cluster capacity and and estimate overprovisioned resoures or estimate autoscaling metrics.
-
+This repository implements kubectl plugin for showing cluster resource utilization. 
+This is can be used to estimate cluster capacity and see at a glance overprovisioned resoures.
+I'ts useful to have such tool if you need to know if you have enough overhead to handle pod autoscaling
+without having to setting up more complicated metrics dashboards, especially when you have many smaller clusters.
 
 ## Installation
 ### Install with krew
@@ -22,6 +24,6 @@ This plugin should be invoked with kubectl command, and will appear as subcomman
 
 ```shell
 kubectl utilization                          
-cores 3.2/20 (16%)
-memory 7.7GiB/76GiB (10%)
+cores: 3.2/20 cores (16%)
+memory: 7.7 GiB/76 GiB (10%)
 ```
