@@ -81,6 +81,7 @@ utilization_cluster() {
         awk \
       'BEGIN{IGNORECASE = 1}
        $1 ~ /[0-9]$/{s+=$1;next};
+       $1 ~ /m?$/{s+=$1/1000;next};
        END {printf "%.2g\n", s}'
        )
 
