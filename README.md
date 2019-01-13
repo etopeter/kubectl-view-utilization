@@ -6,7 +6,7 @@ This repository implements kubectl plugin for showing cluster resource utilizati
 copy kubectl-utilization to location in your `$PATH`. This tool is written in BASH and requires `awk` and `bc` to be installed.
 
 ## Usage
-This plugin should be invoked with kubectl command and will appear as subcommand. It will use existing context configured in `$KUBECONFIG` file.
+This plugin should be invoked with kubectl command, and will appear as subcommand. It will use the existing context configured in `$KUBECONFIG` file.
 
 ```shell
 kubectl utilization                          
