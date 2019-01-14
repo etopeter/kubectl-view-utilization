@@ -18,7 +18,7 @@
 
 set -eo pipefail
 
-PLUGIN_VERSION="v1.0.1"
+PLUGIN_VERSION="v1.0.3"
 NAMESPACE=""
 
 print_plugin_version() {
