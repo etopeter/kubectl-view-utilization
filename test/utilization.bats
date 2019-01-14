@@ -7,8 +7,7 @@ setup() {
 }
 
 teardown() {
-echo "complete"
-
+    echo "Tests complete"
 }
 
 @test "kubectl get nodes allocatable cpu and memory" {
@@ -32,7 +31,8 @@ echo "complete"
 
     run /code/kubectl-utilization -v
     [ $status -eq 0 ]
-    [ "$output" = "v1.0.1" ]
+    echo "output = ${output}"
+    [[ "$output" == v* ]]
 }
 
 @test "kubectl utilization" {
