@@ -33,7 +33,7 @@ memory_prettify() {
     hum[1024**1]="Mb";
     for (x=1024**3; x>=1024; x/=1024){ 
         if (sum>=x) { 
-            printf "%.2g %s\n",sum/x,hum[x];break 
+            printf "%.2f %s\n",sum/x,hum[x];break 
         } 
     }
     }'
@@ -97,7 +97,6 @@ utilization_cluster() {
 
     total_memory_requests_pretty=$(echo "${total_memory_requests_kb}" | memory_prettify)
     total_memory_capacity_pretty=$(echo "${total_memory_capacity_kb}" | memory_prettify)
-
     echo "cores: ${total_cpu_requests_m}/${total_cpu_capacity_m} cores (${avg_percent_cpu}%)"
     echo "memory: ${total_memory_requests_pretty}/${total_memory_capacity_pretty} (${avg_percent_mem}%)"
 }

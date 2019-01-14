@@ -1,0 +1,31 @@
+#!/bin/bash
+
+kubectl() {
+    if [ "${1}" == "get" ] && [ "${2}" == "nodes" ] && [ "${3}" == "-o=jsonpath={range .items[*]} {.status.allocatable.cpu}{'\t'}{.status.allocatable.memory}{'\n'}{end}" ]; then
+        echo " 940m	2702252Ki"
+        echo " 940m	2702252Ki"
+        echo " 940m	2702252Ki"
+        echo " 4      15850212Ki"
+        echo " 4      15850212Ki"
+        echo " 4      15850212Ki"
+    fi
+
+
+    if [ "${1}" == "get" ] && [ "${2}" == "pod" ] && [ "${3}" == "--all-namespaces" ] && [ "${4}" == "-o=jsonpath={range .items[*]}{range .spec.containers[*]}  {.resources.requests.cpu}{'\t'}{.resources.requests.memory}{'\n'}{end}{'\n'}{end}" ]; then
+        echo "  10m"
+        echo "  10m"
+        echo "  10m"
+        echo "  "
+        echo "  "
+        echo "  10m"
+        echo "  50m   300Mi"
+        echo "  100m  70Mi"
+        echo "  100m"
+        echo "  5m    32Mi"
+        echo "  2    1G"
+        echo "  5m    32Mi"
+        echo "  500m  256Mi"
+        echo "  500m  256Mi"
+    fi
+
+}
