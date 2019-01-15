@@ -14,7 +14,7 @@ without having to setting up more complicated metrics dashboards, especially whe
 For Kubernetes 1.12 or newer:
 ```shell
 mkdir -p ~/.kube/plugins/view-utilization && \
-curl -sL https://github.com/etopeter/kubectl-view-utilization/releases/download/v1.0.1/kubectl-view-utilization-v1.0.1.tar.gz | tar xzvf - -C ~/.kube/plugin/view-utilization
+curl -sL https://github.com/etopeter/kubectl-view-utilization/releases/download/v1.0.4/kubectl-view-utilization-v1.0.4.tar.gz | tar xzvf - -C ~/.kube/plugin/view-utilization
 export PATH=$PATH:~/.kube/plugins/kubectl-view-utilization/
 ```
 
