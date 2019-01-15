@@ -27,17 +27,17 @@ teardown() {
 }
 
 
-@test "kubectl utilization -v" {
+@test "kubectl view utilization -v" {
 
-    run /code/kubectl-utilization -v
+    run /code/kubectl-view-utilization -v
     [ $status -eq 0 ]
     echo "output = ${output}"
     [[ "$output" == v* ]]
 }
 
-@test "kubectl utilization" {
+@test "kubectl view utilization" {
 
-    run /code/kubectl-utilization
+    run /code/kubectl-view-utilization
     [ $status -eq 0 ]
     echo "output = ${output}"
     [[ "${lines[0]}" == "cores: 3.3/15 cores (22%)" ]]
