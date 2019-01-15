@@ -1,3 +1,3 @@
-name: "utilization"
+name: "view utilization"
 shortDesc: "Print cluster cpu and memory resource utilization"
-command: "./utilization"
+command: "./view-utilization"
