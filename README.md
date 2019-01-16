@@ -5,6 +5,12 @@ I'ts useful to have such tool if you need to know if you have enough overhead to
 without having to setting up more complicated metrics dashboards, especially when you have many smaller clusters.
 
 ## Installation
+### Dependincies
+
+- bash
+- bc
+- awk
+
 ### Install with krew
 1. [Install krew](https://github.com/GoogleContainerTools/krew) plugin manager for kubectl.
 2. Run `kubectl krew install view-utilization`.
@@ -14,8 +20,8 @@ without having to setting up more complicated metrics dashboards, especially whe
 For Kubernetes 1.12 or newer:
 ```shell
 mkdir -p ~/.kube/plugins/view-utilization && \
-curl -sL https://github.com/etopeter/kubectl-view-utilization/releases/download/v0.0.5/kubectl-view-utilization-v0.0.5.tar.gz | tar xzvf - -C ~/.kube/plugin/view-utilization
-export PATH=$PATH:~/.kube/plugins/kubectl-view-utilization/
+curl -sL https://github.com/etopeter/kubectl-view-utilization/releases/download/v0.1.0/kubectl-view-utilization-v0.1.0.tar.gz | tar xzvf - -C ~/.kube/plugins/view-utilization
+export PATH=$PATH:~/.kube/plugins/view-utilization/
 ```
 
 ## Usage
