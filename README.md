@@ -29,14 +29,14 @@ export PATH=$PATH:~/.kube/plugins/view-utilization/
 This plugin should be invoked with kubectl command, and will appear as subcommand. It will use the existing context configured in `$KUBECONFIG` file.
 
 ```shell
-kubectl view utilization                          
-cores: 3.2/20 cores (16%)
-memory: 7.7 GiB/76 GiB (10%)
+kubectl view-utilization                          
+cores      2.3 / 8       (28%)
+memory  1.2GiB / 30GiB   (4%)
 ```
 Check utilization for specific namespace:
 
 ```shell
-kubectl view utilization -n kube-system
-cores: 0.5/20 cores (2%)
-memory: 5 GiB/76 GiB (6%)
+kubectl view-utilization -n kube-system
+cores:    0.5 / 20      (2%)
+memory:  5GiB / 76GiB   (6%)
 ```

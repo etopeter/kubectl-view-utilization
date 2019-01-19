@@ -29,11 +29,16 @@ print_plugin_version() {
 memory_prettify() {
     awk \
     '{sum=$1 ;
+    hum[1024**3]="TiB";
     hum[1024**2]="GiB";
     hum[1024**1]="Mb";
     for (x=1024**3; x>=1024; x/=1024){ 
         if (sum>=x) { 
-            printf "%.2f %s\n",sum/x,hum[x];break 
+            if (sum/x <= 10){
+                printf "%.1f%s\n",sum/x,hum[x];break;
+            } else {
+                printf "%.f%s\n",sum/x,hum[x];break 
+            }
         } 
     }
     }'
@@ -82,7 +87,11 @@ utilization_cluster() {
       'BEGIN{IGNORECASE = 1}
        $1 ~ /[0-9]$/{s+=$1;next};
        $1 ~ /m?$/{s+=$1/1000;next};
-       END {printf "%.2g\n", s}'
+       END {if (s < 5) 
+           printf "%.2g\n", s;
+       else
+           printf "%.f\n", s;
+       }'
        )
 
     total_memory_capacity_kb=$(echo "${node_all_allocatable}" | \
@@ -97,8 +106,9 @@ utilization_cluster() {
 
     total_memory_requests_pretty=$(echo "${total_memory_requests_kb}" | memory_prettify)
     total_memory_capacity_pretty=$(echo "${total_memory_capacity_kb}" | memory_prettify)
-    echo "cores: ${total_cpu_requests_m}/${total_cpu_capacity_m} cores (${avg_percent_cpu}%)"
-    echo "memory: ${total_memory_requests_pretty}/${total_memory_capacity_pretty} (${avg_percent_mem}%)"
+    printf "cores  %7s / %-7s (%s%%)\n" "${total_cpu_requests_m}" "${total_cpu_capacity_m}" "${avg_percent_cpu}"
+    printf "memory %7s / %-7s (%s%%)\n" "${total_memory_requests_pretty}" "${total_memory_capacity_pretty}" "${avg_percent_mem}"
+
 }
 
 
