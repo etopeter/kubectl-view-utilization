@@ -1,4 +1,5 @@
 # kubectl-view-utilization
+[![Build Status](https://travis-ci.org/etopeter/kubectl-view-utilization.svg?branch=master)](https://travis-ci.org/etopeter/kubectl-view-utilization)
 This repository implements kubectl plugin for showing cluster resource utilization. 
 This is can be used to estimate cluster capacity and see at a glance overprovisioned resoures.
 I'ts useful to have such tool if you need to know if you have enough overhead to handle pod autoscaling
