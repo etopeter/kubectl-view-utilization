@@ -14,7 +14,7 @@ teardown() {
 switch_context() {
     kubectl config use-context $1
     run kubectl config current-context
-    echo "output = ${output}"
+    echo "context= ${output}"
     [ $status -eq 0 ]
     [[ "${lines[0]}" == "${1}" ]]
 }
@@ -31,61 +31,61 @@ switch_context() {
 @test "cluster-small> kubectl get nodes allocatable cpu and memory" {
 
     switch_context cluster-small
-    run kubectl get nodes -o=jsonpath="{range .items[*]} {.status.allocatable.cpu}{'\t'}{.status.allocatable.memory}{'\n'}{end}"
+    run kubectl get nodes -o=jsonpath="{range .items[*]}{.status.allocatable.cpu}{'\t'}{.status.allocatable.memory}{'\n'}{end}"
     [ $status -eq 0 ]
-    [[ "${lines[0]}" == " 449m	1351126Ki" ]]
-    [[ "${lines[1]}" == " 449m	1351126Ki" ]]
+    [[ "${lines[0]}" == "449m	1351126Ki" ]]
+    [[ "${lines[1]}" == "449m	1351126Ki" ]]
 }
 
 @test "cluster-medium> kubectl get nodes allocatable cpu and memory" {
 
     switch_context cluster-medium
-    run kubectl get nodes -o=jsonpath="{range .items[*]} {.status.allocatable.cpu}{'\t'}{.status.allocatable.memory}{'\n'}{end}"
+    run kubectl get nodes -o=jsonpath="{range .items[*]}{.status.allocatable.cpu}{'\t'}{.status.allocatable.memory}{'\n'}{end}"
     [ $status -eq 0 ]
-    [[ "${lines[0]}" == " 940m	2702252Ki" ]]
-    [[ "${lines[3]}" == " 8      31700424Ki" ]]
+    [[ "${lines[0]}" == "940m	2702252Ki" ]]
+    [[ "${lines[3]}" == "8	31700424Ki" ]]
 }
 
 @test "cluster-big> kubectl get nodes allocatable cpu and memory" {
 
     switch_context cluster-big
-    run kubectl get nodes -o=jsonpath="{range .items[*]} {.status.allocatable.cpu}{'\t'}{.status.allocatable.memory}{'\n'}{end}"
+    run kubectl get nodes -o=jsonpath="{range .items[*]}{.status.allocatable.cpu}{'\t'}{.status.allocatable.memory}{'\n'}{end}"
     [ $status -eq 0 ]
-    [[ "${lines[2]}" == " 4      15850212Ki" ]]
-    [[ "${lines[6]}" == " 16     63400848Ki" ]]
-    [[ "${lines[26]}" == " 32     63400848Ki" ]]
+    [[ "${lines[2]}" == "4	15850212Ki" ]]
+    [[ "${lines[6]}" == "16	63400848Ki" ]]
+    [[ "${lines[26]}" == "32	63400848Ki" ]]
 
 }
 
 @test "cluster-small> kubectl get pod requests cpu and memory" {
 
     switch_context cluster-small
-    run kubectl get pod --all-namespaces -o=jsonpath="{range .items[*]}{range .spec.containers[*]}  {.resources.requests.cpu}{'\t'}{.resources.requests.memory}{'\n'}{end}{'\n'}{end}"
+    run kubectl get pod --all-namespaces -o=jsonpath="{range .items[*]}{range .spec.containers[*]}{.resources.requests.cpu}{'\t'}{.resources.requests.memory}{'\n'}{end}{'\n'}{end}"
     [ $status -eq 0 ]
     echo "output = ${output}"
-    [[ "${lines[0]}" == "  10m" ]]
-    [[ "${lines[2]}" == "  50m   300Mi" ]]
-    [[ "${lines[3]}" == "  5m    32Mi" ]]
+    [[ "${lines[0]}" == "10m" ]]
+    [[ "${lines[1]}" == "50m	300Mi" ]]
+    [[ "${lines[2]}" == "5m	32Mi" ]]
 }
 
 @test "cluster-medium> kubectl get pod requests cpu and memory" {
 
     switch_context cluster-medium
-    run kubectl get pod --all-namespaces -o=jsonpath="{range .items[*]}{range .spec.containers[*]}  {.resources.requests.cpu}{'\t'}{.resources.requests.memory}{'\n'}{end}{'\n'}{end}"
+    run kubectl get pod --all-namespaces -o=jsonpath="{range .items[*]}{range .spec.containers[*]}{.resources.requests.cpu}{'\t'}{.resources.requests.memory}{'\n'}{end}{'\n'}{end}"
     [ $status -eq 0 ]
     echo "output = ${output}"
-    [[ "${lines[0]}" == "  10m" ]]
+    [[ "${lines[0]}" == "10m" ]]
 }
 
 @test "cluster-big> kubectl get pod requests cpu and memory" {
 
     switch_context cluster-big
-    run kubectl get pod --all-namespaces -o=jsonpath="{range .items[*]}{range .spec.containers[*]}  {.resources.requests.cpu}{'\t'}{.resources.requests.memory}{'\n'}{end}{'\n'}{end}"
+    run kubectl get pod --all-namespaces -o=jsonpath="{range .items[*]}{range .spec.containers[*]}{.resources.requests.cpu}{'\t'}{.resources.requests.memory}{'\n'}{end}{'\n'}{end}"
     [ $status -eq 0 ]
     echo "output = ${output}"
-    [[ "${lines[0]}" == "  10m" ]]
-    [[ "${lines[8]}" == "  2    1G" ]]
-    [[ "${lines[15]}" == "  2    3G" ]]
+    [[ "${lines[0]}" == "10m" ]]
+    [[ "${lines[7]}" == "2	1G" ]]
+    [[ "${lines[14]}" == "2	3G" ]]
 }
 
 @test "cluster-small> kubectl view utilization" {
@@ -116,4 +116,38 @@ switch_context() {
     echo "${output}"
     [[ "${lines[0]}" == "cores       99 / 538     (18%)" ]]
     [[ "${lines[1]}" == "memory  144GiB / 1.6TiB  (8%)" ]]
+}
+
+@test "cluster-small> kubectl view-utilization namespaces" {
+
+    switch_context cluster-small
+    run /code/kubectl-view-utilization namespaces
+    [ $status -eq 0 ]
+    echo "${output}"
+    [[ "${lines[0]}" == "NAMESPACE         CPU    MEMORY" ]]
+    [[ "${lines[2]}" == "kube-system      0.01     64 Mb" ]]
+}
+
+@test "cluster-medium> kubectl view-utilization namespaces" {
+
+    switch_context cluster-medium
+    run /code/kubectl-view-utilization namespaces
+    [ $status -eq 0 ]
+    echo "${output}"
+    [[ "${lines[0]}" == "NAMESPACE         CPU    MEMORY" ]]
+    [[ "${lines[1]}" == "qa                 18    11 GiB" ]]
+    
+}
+
+@test "cluster-big> kubectl view-utilization namespaces" {
+
+    switch_context cluster-big
+    run /code/kubectl-view-utilization namespaces
+    [ $status -eq 0 ]
+    echo "${output}"
+    [[ "${lines[0]}" == "NAMESPACE         CPU    MEMORY" ]]
+    [[ "${lines[1]}" == "stg                30    60 GiB" ]]
+    [[ "${lines[3]}" == "default          0.02         0" ]]
+    [[ "${lines[6]}" == "kube-system      0.27    434 Mb" ]]
+    
 }

@@ -21,7 +21,7 @@ without having to setting up more complicated metrics dashboards, especially whe
 For Kubernetes 1.12 or newer:
 ```shell
 mkdir -p ~/.kube/plugins/view-utilization && \
-curl -sL https://github.com/etopeter/kubectl-view-utilization/releases/download/v0.1.0/kubectl-view-utilization-v0.1.0.tar.gz | tar xzvf - -C ~/.kube/plugins/view-utilization
+curl -sL https://github.com/etopeter/kubectl-view-utilization/releases/download/v0.1.1/kubectl-view-utilization-v0.1.1.tar.gz | tar xzvf - -C ~/.kube/plugins/view-utilization
 export PATH=$PATH:~/.kube/plugins/view-utilization/
 ```
 
@@ -39,4 +39,15 @@ Check utilization for specific namespace:
 kubectl view-utilization -n kube-system
 cores:    0.5 / 20      (2%)
 memory:  5GiB / 76GiB   (6%)
+```
+Overview of namespace utilization `kubectl view-utilization namespaces`
+```shell
+kubectl view-utilization namespaces
+NAMESPACE       CPU    MEMORY
+rc                4     9 GiB
+prewiew           4     9 GiB
+dev               0         0
+monitoring      0.3   1.5 GiB
+qa                4     9 GiB
+kube-system       3     3 GiB
 ```

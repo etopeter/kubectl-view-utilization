@@ -18,7 +18,7 @@
 
 set -eo pipefail
 
-PLUGIN_VERSION="v0.1.0"
+PLUGIN_VERSION="v0.1.1"
 NAMESPACE=""
 
 print_plugin_version() {
@@ -44,6 +44,81 @@ memory_prettify() {
     }'
 }
 
+utilization_namespaces() {
+    local pods_all_requests
+
+    pods_all_requests_with_namespaces=$(kubectl get pod --all-namespaces -o=go-template --template='{{/* pods all requests with namespaces */}}{{range .items}}{{ $n:=.metadata.namespace }}{{range .spec.containers}}{{ $n }}{{"\t"}}{{ if .resources.requests.cpu }}{{ .resources.requests.cpu }}{{end}}{{"\t"}}{{ if .resources.requests.memory }}{{ .resources.requests.memory }}{{end}}{{"\n"}}{{end}}{{end}}')
+    #echo "${pods_all_requests_with_namespaces}"
+
+    total_cpu_requests_per_namespace_m=$(echo "${pods_all_requests_with_namespaces}" | \
+        awk \
+        '
+        function mem_pretty(sum){
+            if (sum > 0) { 
+                hum[1024**3]="TiB";
+                hum[1024**2]="GiB";
+                hum[1024**1]="Mb";
+                for (x=1024**3; x>=1024; x/=1024){ 
+                    if (sum>=x) { 
+                        if (sum/x <= 10){
+                            ret = sprintf("%.2g %s",sum/x,hum[x]);break;
+                        } else {
+                        ret = sprintf("%.f %s",sum/x,hum[x]);break;
+                    }
+                }
+            }
+        } else {
+            return 0
+        }
+            return ret
+        }
+
+        function cpu_pretty(sum){
+            if (sum < 1000) {
+                ret = sprintf("%.2g",sum/1000)
+            } else if (sum < 10000) {
+                ret = sprintf("%.1g",sum/1000)
+            } else {
+                ret = sprintf("%d",sum/1000)
+            }
+            return ret
+        }
+ 
+        BEGIN{ IGNORECASE = 1 }
+        { FS="\t"; }
+
+        { if (length($1)>longest_namespace_len) {
+               longest_namespace_len = length($1) + 2
+        }}
+
+        namespaces[$1];
+
+        $2 ~ /[0-9]$/{ns_cpu[$1]+=$2*1000;};
+        $2 ~ /m?$/{ns_cpu[$1]+=$2;};
+
+        $3 ~ /M(i)?$/{ns_mem[$1]+=$3*1024;$3;next};
+        $3 ~ /G(i)?$/{ns_mem[$1]+=$3*1048576;next};
+        $3 ~ /T(i)?$/{ns_mem[$1]+=$3*1073741824;next};
+
+        #{if (length(ns_mem[$1]) == 0) {
+        #   ns_mem[$1] = 0;
+        #}}
+
+        #{if (length(ns_cpu[$1]) == 0) {
+        #   ns_cpu[$1] = 0;
+        #}}
+        END {
+        printf("%-" longest_namespace_len "s%8s%10s\n", "NAMESPACE", "CPU", "MEMORY")
+
+        for (namespace in namespaces) 
+            printf("%-" longest_namespace_len "s%8s%10s\n", namespace, cpu_pretty(ns_cpu[namespace]), mem_pretty(ns_mem[namespace]))
+        }')
+       
+    echo "${total_cpu_requests_per_namespace_m}"
+
+}
+
+
 utilization_cluster() {
 
     local pods_all_requests
@@ -63,7 +138,7 @@ utilization_cluster() {
         namespace="--all-namespaces"
     fi
 
-    pods_all_requests=$(kubectl get pod ${namespace} -o=jsonpath="{range .items[*]}{range .spec.containers[*]}  {.resources.requests.cpu}{'\t'}{.resources.requests.memory}{'\n'}{end}{'\n'}{end}")
+    pods_all_requests=$(kubectl get pod ${namespace} -o=jsonpath="{range .items[*]}{range .spec.containers[*]}{.resources.requests.cpu}{'\t'}{.resources.requests.memory}{'\n'}{end}{'\n'}{end}")
     total_cpu_requests_m=$(echo "${pods_all_requests}" | \
         awk \
       'BEGIN{IGNORECASE = 1}
@@ -81,7 +156,7 @@ utilization_cluster() {
        END {printf "%.0f\n", s}'
        )
 
-    node_all_allocatable=$(kubectl get nodes -o=jsonpath="{range .items[*]} {.status.allocatable.cpu}{'\t'}{.status.allocatable.memory}{'\n'}{end}")
+    node_all_allocatable=$(kubectl get nodes -o=jsonpath="{range .items[*]}{.status.allocatable.cpu}{'\t'}{.status.allocatable.memory}{'\n'}{end}")
     total_cpu_capacity_m=$(echo "${node_all_allocatable}" | \
         awk \
       'BEGIN{IGNORECASE = 1}
@@ -143,6 +218,12 @@ while getopts "$optspec" optchar; do
             ;;
         h)
             echo "usage: $0 [-v] [--namespace[=]<value>]" >&2
+            echo "" >&2
+            echo "-n[--namespace]      filter namespace" >&2
+            echo "-h                   prints help" >&2
+            echo "-v                   prints version" >&2
+            echo "subcommands:" >&2
+            echo "    namespaces       shows namespace utilization" >&2
             exit 2
             ;;
         v)
@@ -156,4 +237,8 @@ while getopts "$optspec" optchar; do
     esac
 done
 
-utilization_cluster 
+if [ "${1}" == "namespaces" ]; then
+    utilization_namespaces
+else
+    utilization_cluster 
+fi
