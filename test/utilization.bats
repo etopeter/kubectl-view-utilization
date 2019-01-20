@@ -124,8 +124,8 @@ switch_context() {
     run /code/kubectl-view-utilization namespaces
     [ $status -eq 0 ]
     echo "${output}"
-    [[ "${lines[0]}" == "NAMESPACE         CPU  MEMORY" ]]
-    [[ "${lines[2]}" == "kube-system      0.01   64 Mb" ]]
+    [[ "${lines[0]}" == "NAMESPACE         CPU    MEMORY" ]]
+    [[ "${lines[2]}" == "kube-system      0.01     64 Mb" ]]
 }
 
 @test "cluster-medium> kubectl view-utilization namespaces" {
@@ -134,8 +134,8 @@ switch_context() {
     run /code/kubectl-view-utilization namespaces
     [ $status -eq 0 ]
     echo "${output}"
-    [[ "${lines[0]}" == "NAMESPACE         CPU  MEMORY" ]]
-    [[ "${lines[1]}" == "qa                 18  11 GiB" ]]
+    [[ "${lines[0]}" == "NAMESPACE         CPU    MEMORY" ]]
+    [[ "${lines[1]}" == "qa                 18    11 GiB" ]]
     
 }
 
@@ -145,9 +145,9 @@ switch_context() {
     run /code/kubectl-view-utilization namespaces
     [ $status -eq 0 ]
     echo "${output}"
-    [[ "${lines[0]}" == "NAMESPACE         CPU  MEMORY" ]]
-    [[ "${lines[1]}" == "stg                30  60 GiB" ]]
-    [[ "${lines[3]}" == "default          0.02       0" ]]
-    [[ "${lines[6]}" == "kube-system      0.27  434 Mb" ]]
+    [[ "${lines[0]}" == "NAMESPACE         CPU    MEMORY" ]]
+    [[ "${lines[1]}" == "stg                30    60 GiB" ]]
+    [[ "${lines[3]}" == "default          0.02         0" ]]
+    [[ "${lines[6]}" == "kube-system      0.27    434 Mb" ]]
     
 }
