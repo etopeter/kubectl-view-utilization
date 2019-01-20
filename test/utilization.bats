@@ -138,3 +138,16 @@ switch_context() {
     [[ "${lines[1]}" == "qa                 18  11 GiB" ]]
     
 }
+
+@test "cluster-big> kubectl view-utilization namespaces" {
+
+    switch_context cluster-big
+    run /code/kubectl-view-utilization namespaces
+    [ $status -eq 0 ]
+    echo "${output}"
+    [[ "${lines[0]}" == "NAMESPACE         CPU  MEMORY" ]]
+    [[ "${lines[1]}" == "stg                30  60 GiB" ]]
+    [[ "${lines[3]}" == "default           20m     20m" ]]
+    [[ "${lines[6]}" == "kube-system      270m  434 Mb" ]]
+    
+}
