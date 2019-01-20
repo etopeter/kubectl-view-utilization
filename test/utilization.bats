@@ -43,7 +43,7 @@ switch_context() {
     run kubectl get nodes -o=jsonpath="{range .items[*]}{.status.allocatable.cpu}{'\t'}{.status.allocatable.memory}{'\n'}{end}"
     [ $status -eq 0 ]
     [[ "${lines[0]}" == "940m	2702252Ki" ]]
-    [[ "${lines[3]}" == "8      31700424Ki" ]]
+    [[ "${lines[3]}" == "8	31700424Ki" ]]
 }
 
 @test "cluster-big> kubectl get nodes allocatable cpu and memory" {
@@ -51,9 +51,9 @@ switch_context() {
     switch_context cluster-big
     run kubectl get nodes -o=jsonpath="{range .items[*]}{.status.allocatable.cpu}{'\t'}{.status.allocatable.memory}{'\n'}{end}"
     [ $status -eq 0 ]
-    [[ "${lines[2]}" == "4      15850212Ki" ]]
-    [[ "${lines[6]}" == "16     63400848Ki" ]]
-    [[ "${lines[26]}" == "32     63400848Ki" ]]
+    [[ "${lines[2]}" == "4	15850212Ki" ]]
+    [[ "${lines[6]}" == "16	63400848Ki" ]]
+    [[ "${lines[26]}" == "32	63400848Ki" ]]
 
 }
 
@@ -64,8 +64,8 @@ switch_context() {
     [ $status -eq 0 ]
     echo "output = ${output}"
     [[ "${lines[0]}" == "10m" ]]
-    [[ "${lines[1]}" == "50m   300Mi" ]]
-    [[ "${lines[2]}" == "5m    32Mi" ]]
+    [[ "${lines[1]}" == "50m	300Mi" ]]
+    [[ "${lines[2]}" == "5m	32Mi" ]]
 }
 
 @test "cluster-medium> kubectl get pod requests cpu and memory" {
@@ -84,8 +84,8 @@ switch_context() {
     [ $status -eq 0 ]
     echo "output = ${output}"
     [[ "${lines[0]}" == "10m" ]]
-    [[ "${lines[7]}" == "2    1G" ]]
-    [[ "${lines[14]}" == "2    3G" ]]
+    [[ "${lines[7]}" == "2	1G" ]]
+    [[ "${lines[14]}" == "2	3G" ]]
 }
 
 @test "cluster-small> kubectl view utilization" {
@@ -125,7 +125,7 @@ switch_context() {
     [ $status -eq 0 ]
     echo "${output}"
     [[ "${lines[0]}" == "NAMESPACE         CPU  MEMORY" ]]
-    [[ "${lines[2]}" == "kube-system       10m   64 Mb" ]]
+    [[ "${lines[2]}" == "kube-system      0.01   64 Mb" ]]
 }
 
 @test "cluster-medium> kubectl view-utilization namespaces" {
@@ -147,7 +147,7 @@ switch_context() {
     echo "${output}"
     [[ "${lines[0]}" == "NAMESPACE         CPU  MEMORY" ]]
     [[ "${lines[1]}" == "stg                30  60 GiB" ]]
-    [[ "${lines[3]}" == "default           20m     20m" ]]
-    [[ "${lines[6]}" == "kube-system      270m  434 Mb" ]]
+    [[ "${lines[3]}" == "default          0.02       0" ]]
+    [[ "${lines[6]}" == "kube-system      0.27  434 Mb" ]]
     
 }
