@@ -79,14 +79,11 @@ utilization_namespaces() {
             return ret
         }
  
-    BEGIN {IGNORECASE = 1}
-        { longest_namespace_len = 0 }  
-        {
-           if (length($1)>longest_namespace_len) {
+        BEGIN 
+        { IGNORECASE = 1 }
+        { if (length($1)>longest_namespace_len) {
                longest_namespace_len = length($1) + 2
-           }
-        }
-
+        }}
       
        namespaces[$1];
 
