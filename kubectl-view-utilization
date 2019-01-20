@@ -44,6 +44,78 @@ memory_prettify() {
     }'
 }
 
+utilization_namespaces() {
+    local pods_all_requests
+    pods_all_requests=$(kubectl get pod --all-namespaces -o=jsonpath="{range .items[*]}{.metadata.namespace}{'\t'}{range .spec.containers[*]}{.resources.requests.cpu}{'\t'}{.resources.requests.memory}{'\n'}{end}{'\n'}{end}")
+    #echo "$pods_all_requests"
+
+    total_cpu_requests_per_namespace_m=$(echo "${pods_all_requests}" | \
+        awk \
+        '
+        function mem_pretty(sum){
+            hum[1024**3]="TiB";
+            hum[1024**2]="GiB";
+            hum[1024**1]="Mb";
+            for (x=1024**3; x>=1024; x/=1024){ 
+                if (sum>=x) { 
+                    if (sum/x <= 10){
+                        ret = sprintf("%.1g %s",sum/x,hum[x]);break;
+                    } else {
+                        ret = sprintf("%.f %s",sum/x,hum[x]);break;
+                    }
+                }
+            }
+            return ret
+        }
+
+        function cpu_pretty(sum){
+            if (sum < 1000) {
+                ret = sprintf("%dm",sum)
+            } else if (sum < 10000) {
+                ret = sprintf("%.1g",sum/1000)
+            } else {
+                ret = sprintf("%d",sum/1000)
+            }
+            return ret
+        }
+ 
+    BEGIN {IGNORECASE = 1}
+        { longest_namespace_len = 0 }  
+        {
+           if (length($1)>longest_namespace_len) {
+               longest_namespace_len = length($1) + 2
+           }
+        }
+
+      
+       namespaces[$1];
+
+       $2 ~ /[0-9]$/{ns_cpu[$1]+=$2*1000;};
+       $2 ~ /m?$/{ns_cpu[$1]+=$2;};
+
+       $3 ~ /M(i)?$/{ns_mem[$1]+=$3*1024;next};
+       $3 ~ /G(i)?$/{ns_mem[$1]+=$3*1048576;next};
+       $3 ~ /T(i)?$/{ns_mem[$1]+=$3*1073741824;next};
+
+       {if (length(ns_mem[$1]) == 0) {
+           ns_mem[$1] = 0;
+       }}
+
+       {if (length(ns_cpu[$1]) == 0) {
+           ns_cpu[$1] = 0;
+       }}
+       END {
+       printf("%-" longest_namespace_len "s%8s%8s\n", "NAMESPACE", "CPU", "MEMORY")
+
+       for (namespace in namespaces) 
+           printf("%-" longest_namespace_len "s%8s%8s\n", namespace, cpu_pretty(ns_cpu[namespace]), mem_pretty(ns_mem[namespace]))
+       }')
+       
+    echo "${total_cpu_requests_per_namespace_m}"
+
+}
+
+
 utilization_cluster() {
 
     local pods_all_requests
@@ -143,6 +215,12 @@ while getopts "$optspec" optchar; do
             ;;
         h)
             echo "usage: $0 [-v] [--namespace[=]<value>]" >&2
+            echo "" >&2
+            echo "-n[--namespace]      filter namespace" >&2
+            echo "-h                   prints help" >&2
+            echo "-v                   prints version" >&2
+            echo "subcommands:" >&2
+            echo "    namespaces       shows namespace utilization" >&2
             exit 2
             ;;
         v)
@@ -156,4 +234,8 @@ while getopts "$optspec" optchar; do
     esac
 done
 
-utilization_cluster 
+if [ "${1}" == "namespaces" ]; then
+    utilization_namespaces
+else
+    utilization_cluster 
+fi
