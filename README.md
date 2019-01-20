@@ -40,3 +40,14 @@ kubectl view-utilization -n kube-system
 cores:    0.5 / 20      (2%)
 memory:  5GiB / 76GiB   (6%)
 ```
+Overview of namespace utilization `kubectl view-utilization namespaces`
+```shell
+kubectl view-utilization namespaces
+NAMESPACE       CPU    MEMORY
+rc                4     9 GiB
+prewiew           4     9 GiB
+dev               0         0
+monitoring      0.3   1.5 GiB
+qa                4     9 GiB
+kube-system       3     3 GiB
+```
