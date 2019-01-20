@@ -11,143 +11,231 @@ kubectl() {
         echo "${KUBECTL_CONTEXT}"
     fi
 
+    # get all nodes requests
     if [ "${1}" == "get" ] && [ "${2}" == "nodes" ] && [ "${3}" == "-o=jsonpath={range .items[*]}{.status.allocatable.cpu}{'\t'}{.status.allocatable.memory}{'\n'}{end}" ]; then
-
-        if [ "${KUBECTL_CONTEXT}" == "cluster-small" ]; then 
-            echo "449m	1351126Ki"
-            echo "449m	1351126Ki"
-        fi
-
-
-        if [ "${KUBECTL_CONTEXT}" == "cluster-medium" ]; then 
-            echo "940m	2702252Ki"
-            echo "940m	2702252Ki"
-            echo "4      15850212Ki"
-            echo "8      31700424Ki"
-            echo "8      31700424Ki"
-            echo "8      31700424Ki"
-        fi
-
-        if [ "${KUBECTL_CONTEXT}" == "cluster-big" ]; then 
-            echo "940m	  2702252Ki"
-            echo "940m	  2702252Ki"
-            echo "4      15850212Ki"
-            echo "4      15850212Ki"
-            echo "8      31700424Ki"
-            echo "8      31700424Ki"
-            echo "16     63400848Ki"
-            echo "16     63400848Ki"
-            echo "16     63400848Ki"
-            echo "16     63400848Ki"
-            echo "16     63400848Ki"
-            echo "16     63400848Ki"
-            echo "16     63400848Ki"
-            echo "16     63400848Ki"
-            echo "16     63400848Ki"
-            echo "16     63400848Ki"
-            echo "16     63400848Ki"
-            echo "16     63400848Ki"
-            echo "16     63400848Ki"
-            echo "16     63400848Ki"
-            echo "16     63400848Ki"
-            echo "16     63400848Ki"
-            echo "16     63400848Ki"
-            echo "16     63400848Ki"
-            echo "16     63400848Ki"
-            echo "16     63400848Ki"
-            echo "32     63400848Ki"
-            echo "32     63400848Ki"
-            echo "32     63400848Ki"
-            echo "32     63400848Ki"
-            echo "32     63400848Ki"
-            echo "32     63400848Ki"
-        fi
-
+        kubectl_get_all_nodes_requests
     fi
 
-
-    # Get pod requests
+    # get all pod requests
     if [ "${1}" == "get" ] && [ "${2}" == "pod" ] && [ "${3}" == "--all-namespaces" ] && [ "${4}" == "-o=jsonpath={range .items[*]}{range .spec.containers[*]}{.resources.requests.cpu}{'\t'}{.resources.requests.memory}{'\n'}{end}{'\n'}{end}" ]; then
-
-        if [ "${KUBECTL_CONTEXT}" == "cluster-small" ]; then 
-            echo "10m"
-            echo ""
-            echo "50m   300Mi"
-            echo "5m    32Mi"
-            echo "5m    32Mi"
-        fi
-
-        if [ "${KUBECTL_CONTEXT}" == "cluster-medium" ]; then 
-            echo "10m"
-            echo "10m"
-            echo "10m"
-            echo ""
-            echo ""
-            echo "10m"
-            echo "50m   300Mi"
-            echo "100m  70Mi"
-            echo "100m"
-            echo "5m    32Mi"
-            echo "2    1G"
-            echo "2    1G"
-            echo "2    1G"
-            echo "2    1G"
-            echo "3    2G"
-            echo "3    2G"
-            echo "3    2G"
-            echo "3    2G"
-            echo "5m    32Mi"
-            echo "500m  256Mi"
-            echo "500m  256Mi"
-        fi
-
-        if [ "${KUBECTL_CONTEXT}" == "cluster-big" ]; then 
-            echo "10m"
-            echo "10m"
-            echo ""
-            echo "10m"
-            echo "50m   300Mi"
-            echo "100m  70Mi"
-            echo "100m"
-            echo "5m    32Mi"
-            echo "2    1G"
-            echo "5m    32Mi"
-            echo "500m  256Mi"
-            echo "500m  256Mi"
-            echo ""
-            echo "2    1G"
-            echo "2    1G"
-            echo "2    3G"
-            echo "2    3G"
-            echo "2    4G"
-            echo "2    4G"
-            echo "3    5G"
-            echo "3    5G"
-            echo "3    7G"
-            echo "3    7G"
-            echo "2    8G"
-            echo "2    8G"
-            echo "2    8G"
-            echo "2    8G"
-            echo "2    8G"
-            echo "2    8G"
-            echo "4    5G"
-            echo "4    5G"
-            echo "4    5G"
-            echo "4    5G"
-            echo "4    5G"
-            echo "4    5G"
-            echo "6    4G"
-            echo "6    4G"
-            echo "6    4G"
-            echo "6    4G"
-            echo "6    4G"
-            echo "6    4G"
-        fi
-
-
-
-
+        kubectl_get_all_pods_requests
     fi
 
+    # get all pod requests and with namespaces
+    if [ "${1}" == "get" ] && [ "${2}" == "pod" ] && [ "${3}" == "--all-namespaces" ] && [ "${4}" == "-o=jsonpath={range .items[*]}{.metadata.namespace}{'\t'}{range .spec.containers[*]}{.resources.requests.cpu}{'\t'}{.resources.requests.memory}{'\n'}{end}{'\n'}{end}" ]; then
+        kubectl_get_all_pods_requests_with_namespaces
+    fi
+
+}
+
+
+kubectl_get_all_nodes_requests() {
+
+    if [ "${KUBECTL_CONTEXT}" == "cluster-small" ]; then 
+        echo "449m	1351126Ki"
+        echo "449m	1351126Ki"
+    fi
+
+
+    if [ "${KUBECTL_CONTEXT}" == "cluster-medium" ]; then 
+        echo "940m	2702252Ki"
+        echo "940m	2702252Ki"
+        echo "4      15850212Ki"
+        echo "8      31700424Ki"
+        echo "8      31700424Ki"
+        echo "8      31700424Ki"
+    fi
+
+    if [ "${KUBECTL_CONTEXT}" == "cluster-big" ]; then 
+        echo "940m	  2702252Ki"
+        echo "940m	  2702252Ki"
+        echo "4      15850212Ki"
+        echo "4      15850212Ki"
+        echo "8      31700424Ki"
+        echo "8      31700424Ki"
+        echo "16     63400848Ki"
+        echo "16     63400848Ki"
+        echo "16     63400848Ki"
+        echo "16     63400848Ki"
+        echo "16     63400848Ki"
+        echo "16     63400848Ki"
+        echo "16     63400848Ki"
+        echo "16     63400848Ki"
+        echo "16     63400848Ki"
+        echo "16     63400848Ki"
+        echo "16     63400848Ki"
+        echo "16     63400848Ki"
+        echo "16     63400848Ki"
+        echo "16     63400848Ki"
+        echo "16     63400848Ki"
+        echo "16     63400848Ki"
+        echo "16     63400848Ki"
+        echo "16     63400848Ki"
+        echo "16     63400848Ki"
+        echo "16     63400848Ki"
+        echo "32     63400848Ki"
+        echo "32     63400848Ki"
+        echo "32     63400848Ki"
+        echo "32     63400848Ki"
+        echo "32     63400848Ki"
+        echo "32     63400848Ki"
+    fi
+}
+
+kubectl_get_all_pods_requests() {
+
+    if [ "${KUBECTL_CONTEXT}" == "cluster-small" ]; then 
+        echo "10m"
+        echo ""
+        echo "50m   300Mi"
+        echo "5m    32Mi"
+        echo "5m    32Mi"
+    fi
+
+    if [ "${KUBECTL_CONTEXT}" == "cluster-medium" ]; then 
+        echo "10m"
+        echo "10m"
+        echo "10m"
+        echo ""
+        echo ""
+        echo "10m"
+        echo "50m   300Mi"
+        echo "100m  70Mi"
+        echo "100m"
+        echo "5m    32Mi"
+        echo "2    1G"
+        echo "2    1G"
+        echo "2    1G"
+        echo "2    1G"
+        echo "3    2G"
+        echo "3    2G"
+        echo "3    2G"
+        echo "3    2G"
+        echo "5m    32Mi"
+        echo "500m  256Mi"
+        echo "500m  256Mi"
+    fi
+
+    if [ "${KUBECTL_CONTEXT}" == "cluster-big" ]; then 
+        echo "10m"
+        echo "10m"
+        echo ""
+        echo "10m"
+        echo "50m   300Mi"
+        echo "100m  70Mi"
+        echo "100m"
+        echo "5m    32Mi"
+        echo "2    1G"
+        echo "5m    32Mi"
+        echo "500m  256Mi"
+        echo "500m  256Mi"
+        echo ""
+        echo "2    1G"
+        echo "2    1G"
+        echo "2    3G"
+        echo "2    3G"
+        echo "2    4G"
+        echo "2    4G"
+        echo "3    5G"
+        echo "3    5G"
+        echo "3    7G"
+        echo "3    7G"
+        echo "2    8G"
+        echo "2    8G"
+        echo "2    8G"
+        echo "2    8G"
+        echo "2    8G"
+        echo "2    8G"
+        echo "4    5G"
+        echo "4    5G"
+        echo "4    5G"
+        echo "4    5G"
+        echo "4    5G"
+        echo "4    5G"
+        echo "6    4G"
+        echo "6    4G"
+        echo "6    4G"
+        echo "6    4G"
+        echo "6    4G"
+        echo "6    4G"
+    fi
+}
+
+kubectl_get_all_pods_requests_with_namespaces() {
+
+    if [ "${KUBECTL_CONTEXT}" == "cluster-small" ]; then 
+        echo "default   10m"
+        echo "default"
+        echo "default   50m   300Mi"
+        echo "kube-system   5m    32Mi"
+        echo "kube-system   5m    32Mi"
+    fi
+
+    if [ "${KUBECTL_CONTEXT}" == "cluster-medium" ]; then 
+        echo "kube-system   10m"
+        echo "kube-system   10m"
+        echo "kube-system   10m"
+        echo "kube-system"
+        echo "kube-system"
+        echo "kube-system   10m"
+        echo "default   50m   300Mi"
+        echo "default   100m  70Mi"
+        echo "default   100m"
+        echo "default   5m    32Mi"
+        echo "default    2    1G"
+        echo "qa    2    1G"
+        echo "qa    2    1G"
+        echo "qa    2    1G"
+        echo "qa    3    2G"
+        echo "qa    3    2G"
+        echo "qa    3    2G"
+        echo "qa    3    2G"
+        echo "default   5m    32Mi"
+        echo "kube-system   500m  256Mi"
+        echo "kube-system   500m  256Mi"
+    fi
+
+    if [ "${KUBECTL_CONTEXT}" == "cluster-big" ]; then 
+        echo "default   10m"
+        echo "default   10m"
+        echo "default"
+        echo "kube-system   10m"
+        echo "kube-system   50m   300Mi"
+        echo "kube-system   100m  70Mi"
+        echo "kube-system   100m"
+        echo "kube-system   5m    32Mi"
+        echo "qa    2    1G"
+        echo "kube-system   5m    32Mi"
+        echo "monitoring    500m  256Mi"
+        echo "monitoring    500m  256Mi"
+        echo "default"
+        echo "qa    2    1G"
+        echo "qa    2    1G"
+        echo "dev   2    3G"
+        echo "dev   2    3G"
+        echo "qa    2    4G"
+        echo "qa    2    4G"
+        echo "qa    3    5G"
+        echo "qa    3    5G"
+        echo "qa    3    7G"
+        echo "qa    3    7G"
+        echo "stg   2    8G"
+        echo "stg   2    8G"
+        echo "stg   2    8G"
+        echo "stg   2    8G"
+        echo "stg   2    8G"
+        echo "stg   2    8G"
+        echo "qa    4    5G"
+        echo "qa    4    5G"
+        echo "dev   4    5G"
+        echo "dev   4    5G"
+        echo "dev   4    5G"
+        echo "dev   4    5G"
+        echo "qa    6    4G"
+        echo "qa    6    4G"
+        echo "dev   6    4G"
+        echo "stg   6    4G"
+        echo "stg   6    4G"
+        echo "stg   6    4G"
+    fi
 }

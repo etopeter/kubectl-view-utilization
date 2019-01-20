@@ -14,7 +14,7 @@ teardown() {
 switch_context() {
     kubectl config use-context $1
     run kubectl config current-context
-    echo "output = ${output}"
+    echo "context= ${output}"
     [ $status -eq 0 ]
     [[ "${lines[0]}" == "${1}" ]]
 }
@@ -116,4 +116,25 @@ switch_context() {
     echo "${output}"
     [[ "${lines[0]}" == "cores       99 / 538     (18%)" ]]
     [[ "${lines[1]}" == "memory  144GiB / 1.6TiB  (8%)" ]]
+}
+
+@test "cluster-small> kubectl view-utilization namespaces" {
+
+    switch_context cluster-small
+    run /code/kubectl-view-utilization namespaces
+    [ $status -eq 0 ]
+    echo "${output}"
+    [[ "${lines[0]}" == "NAMESPACE         CPU  MEMORY" ]]
+    [[ "${lines[2]}" == "kube-system       10m   64 Mb" ]]
+}
+
+@test "cluster-medium> kubectl view-utilization namespaces" {
+
+    switch_context cluster-medium
+    run /code/kubectl-view-utilization namespaces
+    [ $status -eq 0 ]
+    echo "${output}"
+    [[ "${lines[0]}" == "NAMESPACE         CPU  MEMORY" ]]
+    [[ "${lines[1]}" == "qa                 18  11 GiB" ]]
+    
 }
