@@ -60,7 +60,7 @@ switch_context() {
 @test "cluster-small> kubectl get pod requests cpu and memory" {
 
     switch_context cluster-small
-    run kubectl get pod --all-namespaces -o=jsonpath="{range .items[*]}{range .spec.containers[*]}{.resources.requests.cpu}{'\t'}{.resources.requests.memory}{'\n'}{end}{'\n'}{end}"
+    run kubectl get pod --all-namespaces --field-selector=status.phase=Running -o=jsonpath="{range .items[*]}{range .spec.containers[*]}{.resources.requests.cpu}{'\t'}{.resources.requests.memory}{'\n'}{end}{'\n'}{end}"
     [ $status -eq 0 ]
     echo "output = ${output}"
     [[ "${lines[0]}" == "10m" ]]
@@ -71,7 +71,7 @@ switch_context() {
 @test "cluster-medium> kubectl get pod requests cpu and memory" {
 
     switch_context cluster-medium
-    run kubectl get pod --all-namespaces -o=jsonpath="{range .items[*]}{range .spec.containers[*]}{.resources.requests.cpu}{'\t'}{.resources.requests.memory}{'\n'}{end}{'\n'}{end}"
+    run kubectl get pod --all-namespaces --field-selector=status.phase=Running -o=jsonpath="{range .items[*]}{range .spec.containers[*]}{.resources.requests.cpu}{'\t'}{.resources.requests.memory}{'\n'}{end}{'\n'}{end}"
     [ $status -eq 0 ]
     echo "output = ${output}"
     [[ "${lines[0]}" == "10m" ]]
@@ -80,7 +80,7 @@ switch_context() {
 @test "cluster-big> kubectl get pod requests cpu and memory" {
 
     switch_context cluster-big
-    run kubectl get pod --all-namespaces -o=jsonpath="{range .items[*]}{range .spec.containers[*]}{.resources.requests.cpu}{'\t'}{.resources.requests.memory}{'\n'}{end}{'\n'}{end}"
+    run kubectl get pod --all-namespaces --field-selector=status.phase=Running -o=jsonpath="{range .items[*]}{range .spec.containers[*]}{.resources.requests.cpu}{'\t'}{.resources.requests.memory}{'\n'}{end}{'\n'}{end}"
     [ $status -eq 0 ]
     echo "output = ${output}"
     [[ "${lines[0]}" == "10m" ]]
