@@ -47,7 +47,7 @@ memory_prettify() {
 utilization_namespaces() {
     local pods_all_requests
 
-    pods_all_requests_with_namespaces=$(kubectl get pod --all-namespaces -o=go-template --template='{{/* pods all requests with namespaces */}}{{range .items}}{{ $n:=.metadata.namespace }}{{range .spec.containers}}{{ $n }}{{"\t"}}{{ if .resources.requests.cpu }}{{ .resources.requests.cpu }}{{end}}{{"\t"}}{{ if .resources.requests.memory }}{{ .resources.requests.memory }}{{end}}{{"\n"}}{{end}}{{end}}')
+    pods_all_requests_with_namespaces=$(kubectl get pod --all-namespaces --field-selector=status.phase=Running -o=go-template --template='{{/* pods all requests with namespaces */}}{{range .items}}{{ $n:=.metadata.namespace }}{{range .spec.containers}}{{ $n }}{{"\t"}}{{ if .resources.requests.cpu }}{{ .resources.requests.cpu }}{{end}}{{"\t"}}{{ if .resources.requests.memory }}{{ .resources.requests.memory }}{{end}}{{"\n"}}{{end}}{{end}}')
     #echo "${pods_all_requests_with_namespaces}"
 
     total_cpu_requests_per_namespace_m=$(echo "${pods_all_requests_with_namespaces}" | \
@@ -138,7 +138,7 @@ utilization_cluster() {
         namespace="--all-namespaces"
     fi
 
-    pods_all_requests=$(kubectl get pod ${namespace} -o=jsonpath="{range .items[*]}{range .spec.containers[*]}{.resources.requests.cpu}{'\t'}{.resources.requests.memory}{'\n'}{end}{'\n'}{end}")
+    pods_all_requests=$(kubectl get pod ${namespace} --field-selector=status.phase=Running -o=jsonpath="{range .items[*]}{range .spec.containers[*]}{.resources.requests.cpu}{'\t'}{.resources.requests.memory}{'\n'}{end}{'\n'}{end}")
     total_cpu_requests_m=$(echo "${pods_all_requests}" | \
         awk \
       'BEGIN{IGNORECASE = 1}
