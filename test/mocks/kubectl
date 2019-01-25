@@ -17,12 +17,12 @@ kubectl() {
     fi
 
     # get all pod requests
-    if [ "${1}" == "get" ] && [ "${2}" == "pod" ] && [ "${3}" == "--all-namespaces" ] && [ "${4}" == "-o=jsonpath={range .items[*]}{range .spec.containers[*]}{.resources.requests.cpu}{'\t'}{.resources.requests.memory}{'\n'}{end}{'\n'}{end}" ]; then
+    if [ "${1}" == "get" ] && [ "${2}" == "pod" ] && [ "${3}" == "--all-namespaces" ] && [ "${4}" == "--field-selector=status.phase=Running" ] && [ "${5}" == "-o=jsonpath={range .items[*]}{range .spec.containers[*]}{.resources.requests.cpu}{'\t'}{.resources.requests.memory}{'\n'}{end}{'\n'}{end}" ]; then
         kubectl_get_all_pods_requests
     fi
 
     # get all pod requests and with namespaces
-    if [ "${1}" == "get" ] && [ "${2}" == "pod" ] && [ "${3}" == "--all-namespaces" ] && [ "${4}" == "-o=go-template" ] && [[ "${5}" == *"pods all requests with namespaces"* ]]; then
+    if [ "${1}" == "get" ] && [ "${2}" == "pod" ] && [ "${3}" == "--all-namespaces" ] && [ "${4}" == "--field-selector=status.phase=Running" ] && [ "${5}" == "-o=go-template" ] && [[ "${6}" == *"pods all requests with namespaces"* ]]; then
         kubectl_get_all_pods_requests_with_namespaces
     fi
 
