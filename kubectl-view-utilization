@@ -16,189 +16,187 @@
 
 # Prints cluster resource utilization
 
-set -eo pipefail
 
-PLUGIN_VERSION="v0.1.1"
-NAMESPACE=""
+
+PLUGIN_VERSION="v0.1.2"
+VIEW_UTILIZATION_NAMESPACE=""
+VIEW_UTILIZATION_NODE_LABEL=""
 
 print_plugin_version() {
     echo "${PLUGIN_VERSION}"
     exit
 }
 
-memory_prettify() {
-    awk \
-    '{sum=$1 ;
-    hum[1024**3]="TiB";
-    hum[1024**2]="GiB";
-    hum[1024**1]="Mb";
-    for (x=1024**3; x>=1024; x/=1024){ 
-        if (sum>=x) { 
-            if (sum/x <= 10){
-                printf "%.1f%s\n",sum/x,hum[x];break;
-            } else {
-                printf "%.f%s\n",sum/x,hum[x];break 
-            }
-        } 
-    }
-    }'
-}
+get_pod_data() {
 
-utilization_namespaces() {
-    local pods_all_requests
-
-    pods_all_requests_with_namespaces=$(kubectl get pod --all-namespaces --field-selector=status.phase=Running -o=go-template --template='{{/* pods all requests with namespaces */}}{{range .items}}{{ $n:=.metadata.namespace }}{{range .spec.containers}}{{ $n }}{{"\t"}}{{ if .resources.requests.cpu }}{{ .resources.requests.cpu }}{{end}}{{"\t"}}{{ if .resources.requests.memory }}{{ .resources.requests.memory }}{{end}}{{"\n"}}{{end}}{{end}}')
-    #echo "${pods_all_requests_with_namespaces}"
-
-    total_cpu_requests_per_namespace_m=$(echo "${pods_all_requests_with_namespaces}" | \
-        awk \
-        '
-        function mem_pretty(sum){
-            if (sum > 0) { 
-                hum[1024**3]="TiB";
-                hum[1024**2]="GiB";
-                hum[1024**1]="Mb";
-                for (x=1024**3; x>=1024; x/=1024){ 
-                    if (sum>=x) { 
-                        if (sum/x <= 10){
-                            ret = sprintf("%.2g %s",sum/x,hum[x]);break;
-                        } else {
-                        ret = sprintf("%.f %s",sum/x,hum[x]);break;
-                    }
-                }
-            }
-        } else {
-            return 0
-        }
-            return ret
-        }
-
-        function cpu_pretty(sum){
-            if (sum < 1000) {
-                ret = sprintf("%.2g",sum/1000)
-            } else if (sum < 10000) {
-                ret = sprintf("%.1g",sum/1000)
-            } else {
-                ret = sprintf("%d",sum/1000)
-            }
-            return ret
-        }
- 
-        BEGIN{ IGNORECASE = 1 }
-        { FS="\t"; }
-
-        { if (length($1)>longest_namespace_len) {
-               longest_namespace_len = length($1) + 2
-        }}
-
-        namespaces[$1];
-
-        $2 ~ /[0-9]$/{ns_cpu[$1]+=$2*1000;};
-        $2 ~ /m?$/{ns_cpu[$1]+=$2;};
-
-        $3 ~ /M(i)?$/{ns_mem[$1]+=$3*1024;$3;next};
-        $3 ~ /G(i)?$/{ns_mem[$1]+=$3*1048576;next};
-        $3 ~ /T(i)?$/{ns_mem[$1]+=$3*1073741824;next};
-
-        #{if (length(ns_mem[$1]) == 0) {
-        #   ns_mem[$1] = 0;
-        #}}
-
-        #{if (length(ns_cpu[$1]) == 0) {
-        #   ns_cpu[$1] = 0;
-        #}}
-        END {
-        printf("%-" longest_namespace_len "s%8s%10s\n", "NAMESPACE", "CPU", "MEMORY")
-
-        for (namespace in namespaces) 
-            printf("%-" longest_namespace_len "s%8s%10s\n", namespace, cpu_pretty(ns_cpu[namespace]), mem_pretty(ns_mem[namespace]))
-        }')
-       
-    echo "${total_cpu_requests_per_namespace_m}"
-
-}
-
-
-utilization_cluster() {
-
-    local pods_all_requests
-    local total_cpu_requests_m
-    local total_memory_requests_kb
-    local total_memory_requests_pretty
-    local node_all_allocatable
-    local total_cpu_capacity_m
-    local total_memory_capacity_kb
-    local avg_percent_mem
-    local avg_percent_cpu
+    local template
     local namespace
 
-    if [ "${NAMESPACE}" != "" ]; then
-        namespace="--namespace=${NAMESPACE}"
+    read -r -d '' template <<'EOF'
+    {{/* get_pod_data */}}
+    {{ range .items }}
+
+        {{ $namespace:=.metadata.namespace }}
+        {{ $node:=.spec.nodeName }}
+
+        {{ range .spec.containers }}
+
+            {{ $namespace }}
+            {{ "\t" }}
+             
+            {{ $node }}
+            {{"\t"}}
+
+            {{ if .resources.requests.cpu }}
+                {{ .resources.requests.cpu }}
+            {{end}}
+            {{ "\t" }}
+
+            {{ if .resources.requests.memory }}
+                {{ .resources.requests.memory }}
+            {{end}}
+
+            {{ "\n" }}
+
+        {{end}}
+    {{end}}
+EOF
+
+    # Debug
+    #echo "${template//[$' \t\r\n']}"
+
+    if [ "${VIEW_UTILIZATION_NAMESPACE}" != "" ]; then
+        namespace="--namespace=${VIEW_UTILIZATION_NAMESPACE}"
     else
         namespace="--all-namespaces"
     fi
 
-    pods_all_requests=$(kubectl get pod ${namespace} --field-selector=status.phase=Running -o=jsonpath="{range .items[*]}{range .spec.containers[*]}{.resources.requests.cpu}{'\t'}{.resources.requests.memory}{'\n'}{end}{'\n'}{end}")
-    total_cpu_requests_m=$(echo "${pods_all_requests}" | \
-        awk \
-      'BEGIN{IGNORECASE = 1}
-       $1 ~ /[0-9]$/{s+=$1;next};
-       $1 ~ /m?$/{s+=$1/1000;next};
-       END {printf "%.2g\n", s}'
-       )
-        
-    total_memory_requests_kb=$(echo "${pods_all_requests}" | \
-        awk \
-      'BEGIN{IGNORECASE = 1}
-       $2 ~ /M(i)?$/{s+=$2*1024; next};
-       $2 ~ /G(i)?$/{s+=$2*1048576; next};
-       $2 ~ /T(i)?$/{s+=$2*1073741824; next};
-       END {printf "%.0f\n", s}'
-       )
+    kubectl get pod $namespace --field-selector=status.phase=Running -o=go-template --template="${template//[$' \t\r\n']}"
+}
 
-    node_all_allocatable=$(kubectl get nodes -o=jsonpath="{range .items[*]}{.status.allocatable.cpu}{'\t'}{.status.allocatable.memory}{'\n'}{end}")
-    total_cpu_capacity_m=$(echo "${node_all_allocatable}" | \
-        awk \
-      'BEGIN{IGNORECASE = 1}
-       $1 ~ /[0-9]$/{s+=$1;next};
-       $1 ~ /m?$/{s+=$1/1000;next};
-       END {if (s < 5) 
-           printf "%.2g\n", s;
-       else
-           printf "%.f\n", s;
-       }'
-       )
+get_node_data() {
+    local node_label
 
-    total_memory_capacity_kb=$(echo "${node_all_allocatable}" | \
-        awk \
-      'BEGIN{IGNORECASE = 1}
-       $2 ~ /Ki?$/{s+=$2; next};
-       END {printf "%.0f\n", s}'
-       )
- 
-    avg_percent_cpu=$(echo "${total_cpu_requests_m} * 100 / ${total_cpu_capacity_m}" | bc )
-    avg_percent_mem=$(echo "${total_memory_requests_kb} * 100 / ${total_memory_capacity_kb}" | bc )
+    if [ "${VIEW_UTILIZATION_NODE_LABEL}" != "" ]; then
+        node_label="-l ${VIEW_UTILIZATION_NODE_LABEL}"
+    fi
 
-    total_memory_requests_pretty=$(echo "${total_memory_requests_kb}" | memory_prettify)
-    total_memory_capacity_pretty=$(echo "${total_memory_capacity_kb}" | memory_prettify)
-    printf "cores  %7s / %-7s (%s%%)\n" "${total_cpu_requests_m}" "${total_cpu_capacity_m}" "${avg_percent_cpu}"
-    printf "memory %7s / %-7s (%s%%)\n" "${total_memory_requests_pretty}" "${total_memory_capacity_pretty}" "${avg_percent_mem}"
-
+    kubectl get nodes $node_label -o=jsonpath="{range .items[*]}{.metadata.name}{'\t'}{.status.allocatable.cpu}{'\t'}{.status.allocatable.memory}{'\n'}{end}"
 }
 
 
-optspec=":nhv-:"
+cluster_utilization() {
+
+    awk \
+    "$VIEW_UTILIZATION_AWK_FN"'
+    NR==FNR { node[$1]; } 
+
+    NR==FNR && $2 ~ /[0-9]$/ { alloc_cpu+=$2*1000; };
+    NR==FNR && $2 ~ /m?$/    { alloc_cpu+=$2; };
+    NR==FNR && $3 ~ /Ki?$/   { alloc_mem+=$3;next };
+
+    # CPU requests
+    $2 in node && $3 ~ /[0-9]$/ { req_cpu+=$3*1000; };
+    $2 in node && $3 ~ /m?$/    { req_cpu+=$3; };
+
+    # memory requests
+    $2 in node && $4 ~ /M(i)?$/ { req_mem+=$4*1024;$3; next };
+    $2 in node && $4 ~ /G(i)?$/ { req_mem+=$4*1048576; next };
+    $2 in node && $4 ~ /T(i)?$/ { req_mem+=$4*1073741824; next };
+    END {
+        if ( alloc_cpu > 0 && alloc_mem > 0 ) {
+            printf("cores  %5s / %-5s (%d%%)\n", cpu_pretty(req_cpu), cpu_pretty(alloc_cpu), req_cpu * 100 / alloc_cpu);
+            printf("memory %5s / %-5s (%d%%)\n", mem_pretty(req_mem), mem_pretty(alloc_mem), req_mem * 100 / alloc_mem);
+        }
+    }
+    ' <(get_node_data) <(get_pod_data) 
+}
+
+namespace_utilization() {
+
+    awk \
+    "$VIEW_UTILIZATION_AWK_FN"'
+    namespaces[$1];
+
+    # CPU requests
+    $3 ~ /[0-9]$/ { req_cpu[$1]+=$3*1000; };
+    $3 ~ /m?$/    { req_cpu[$1]+=$3; };
+
+    # memory requests
+    $4 ~ /M(i)?$/ { req_mem[$1]+=$4*1024;$3; next };
+    $4 ~ /G(i)?$/ { req_mem[$1]+=$4*1048576; next };
+    $4 ~ /T(i)?$/ { req_mem[$1]+=$4*1073741824; next };
+
+    END {
+
+        for (namespace in namespaces) { 
+            if (length(namespace)>longest_namespace_len) {
+                longest_namespace_len = length(namespace) + 2
+            }
+        }
+
+        printf("%-" longest_namespace_len "s%8s%10s\n", "NAMESPACE", "CPU", "MEMORY")
+
+        for (namespace in namespaces) 
+            printf("%-" longest_namespace_len "s%8s%10s\n", namespace, cpu_pretty(req_cpu[namespace]), mem_pretty(req_mem[namespace]))
+    }
+    ' <(get_pod_data) 
+}
+
+VIEW_UTILIZATION_AWK_FN='
+function cpu_pretty(sum){
+    if (sum < 10000) {
+        ret = sprintf("%.2g",sum/1000)
+    } else {
+        ret = sprintf("%d",sum/1000)
+    }
+    return ret
+}
+ 
+function mem_pretty(sum){
+    if (sum > 0) { 
+        hum[1024**3]="T";
+        hum[1024**2]="G";
+        hum[1024**1]="M";
+        for (x=1024**3; x>=1024; x/=1024){ 
+            if (sum>=x) { 
+                if (sum/x <= 10){
+                    ret = sprintf("%.2g%s",sum/x,hum[x]);break;
+                } else {
+                ret = sprintf("%.f%s",sum/x,hum[x]);break;
+                }
+            }
+        }
+    } else {
+    return 0
+}
+    return ret
+}
+'
+
+
+
+
+optspec=":nlhv-:"
 while getopts "$optspec" optchar; do
     case "${optchar}" in
         -)
             case "${OPTARG}" in
                 namespace)
                     val="${!OPTIND}"; OPTIND=$(( OPTIND + 1 ))
-                    NAMESPACE="${val}"
+                    VIEW_UTILIZATION_NAMESPACE="${val}"
                     ;;
                 namespace=*)
                     val=${OPTARG#*=}
-                    NAMESPACE="${val}"
+                    VIEW_UTILIZATION_NAMESPACE="${val}"
+                    ;;
+                selector)
+                    val="${!OPTIND}"; OPTIND=$(( OPTIND + 1 ))
+                    VIEW_UTILIZATION_NODE_LABEL="${val}"
+                    ;;
+                selector=*)
+                    val=${OPTARG#*=}
+                    VIEW_UTILIZATION_NODE_LABEL="${val}"
                     ;;
                 *)
                     if [ "$OPTERR" = 1 ] && [ "${optspec:0:1}" != ":" ]; then
@@ -209,9 +207,19 @@ while getopts "$optspec" optchar; do
         n)
             shift
             if test $# -gt 0; then
-                NAMESPACE=$1
+                VIEW_UTILIZATION_NAMESPACE=$1
             else
                 echo "no namespace specified"
+                exit 1
+            fi
+            shift
+            ;;
+        l)
+            shift
+            if test $# -gt 0; then
+                VIEW_UTILIZATION_NODE_LABEL=$1
+            else
+                echo "no label specified"
                 exit 1
             fi
             shift
@@ -219,11 +227,12 @@ while getopts "$optspec" optchar; do
         h)
             echo "usage: $0 [-v] [--namespace[=]<value>]" >&2
             echo "" >&2
-            echo "-n[--namespace]      filter namespace" >&2
-            echo "-h                   prints help" >&2
-            echo "-v                   prints version" >&2
+            echo "-n[--namespace]     filter by namespace" >&2
+            echo "-l[--selector]      filter by node label" >&2
+            echo "-h                  prints help" >&2
+            echo "-v                  prints version" >&2
             echo "subcommands:" >&2
-            echo "    namespaces       shows namespace utilization" >&2
+            echo "    namespaces      shows namespace utilization" >&2
             exit 2
             ;;
         v)
@@ -238,7 +247,7 @@ while getopts "$optspec" optchar; do
 done
 
 if [ "${1}" == "namespaces" ]; then
-    utilization_namespaces
+    namespace_utilization
 else
-    utilization_cluster 
+    cluster_utilization
 fi
