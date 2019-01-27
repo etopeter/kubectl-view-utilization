@@ -9,7 +9,6 @@ without having to setting up more complicated metrics dashboards, especially whe
 ### Dependincies
 
 - bash
-- bc
 - awk
 
 ### Install with krew
@@ -37,11 +36,12 @@ Check utilization for specific namespace:
 
 ```shell
 kubectl view-utilization -n kube-system
-cores:    0.5 / 20  (2%)
+cores:   0.5 / 20   (2%)
 memory:  5G / 76G   (6%)
 ```
 
-Check utilization for node groups using label filters. Example filter out master nodes `node-role.kubernetes.io/master=true`:
+Check utilization for node groups using label filters.
+Example filter out master nodes `node-role.kubernetes.io/master=true`:
 
 ```shell
 kubectl view-utilization -l node-role.kubernetes.io/master=true
