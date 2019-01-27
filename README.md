@@ -9,7 +9,6 @@ without having to setting up more complicated metrics dashboards, especially whe
 ### Dependincies
 
 - bash
-- bc
 - awk
 
 ### Install with krew
@@ -21,7 +20,7 @@ without having to setting up more complicated metrics dashboards, especially whe
 For Kubernetes 1.12 or newer:
 ```shell
 mkdir -p ~/.kube/plugins/view-utilization && \
-curl -sL https://github.com/etopeter/kubectl-view-utilization/releases/download/v0.1.1/kubectl-view-utilization-v0.1.1.tar.gz | tar xzvf - -C ~/.kube/plugins/view-utilization
+curl -sL https://github.com/etopeter/kubectl-view-utilization/releases/download/v0.1.2/kubectl-view-utilization-v0.1.2.tar.gz | tar xzvf - -C ~/.kube/plugins/view-utilization
 export PATH=$PATH:~/.kube/plugins/view-utilization/
 ```
 
@@ -30,24 +29,34 @@ This plugin should be invoked with kubectl command, and will appear as subcomman
 
 ```shell
 kubectl view-utilization                          
-cores      2.3 / 8       (28%)
-memory  1.2GiB / 30GiB   (4%)
+cores      2.3 / 8   (28%)
+memory  1.2G / 30G   (4%)
 ```
 Check utilization for specific namespace:
 
 ```shell
 kubectl view-utilization -n kube-system
-cores:    0.5 / 20      (2%)
-memory:  5GiB / 76GiB   (6%)
+cores:   0.5 / 20   (2%)
+memory:  5G / 76G   (6%)
 ```
+
+Check utilization for node groups using label filters.
+Example filter out master nodes `node-role.kubernetes.io/master=true`:
+
+```shell
+kubectl view-utilization -l node-role.kubernetes.io/master=true
+cores:    0.5 / 8   (2%)
+memory:  1G / 24G   (4%)
+```
+
 Overview of namespace utilization `kubectl view-utilization namespaces`
 ```shell
 kubectl view-utilization namespaces
-NAMESPACE       CPU    MEMORY
-rc                4     9 GiB
-prewiew           4     9 GiB
-dev               0         0
-monitoring      0.3   1.5 GiB
-qa                4     9 GiB
-kube-system       3     3 GiB
+NAMESPACE       CPU   MEMORY
+rc                4       9G
+prewiew           4       9G
+dev               0        0
+monitoring      0.3     1.5G
+qa                4       9G
+kube-system       3       3G
 ```
