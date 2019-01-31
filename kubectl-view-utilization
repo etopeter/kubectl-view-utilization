@@ -18,7 +18,7 @@
 
 
 
-PLUGIN_VERSION="v0.1.2"
+PLUGIN_VERSION="v0.1.3"
 VIEW_UTILIZATION_NAMESPACE=""
 VIEW_UTILIZATION_NODE_LABEL=""
 
@@ -129,21 +129,55 @@ namespace_utilization() {
 
     END {
 
-        for (namespace in namespaces) { 
-            if (length(namespace)>longest_namespace_len) {
-                longest_namespace_len = length(namespace) + 2
-            }
+        i=1;
+        for (namespace in namespaces) {
+            nsindex[i]=namespace;
+            i++;
+            if (longest_namespace_len < length(namespace)) longest_namespace_len = length(namespace)
         }
 
         printf("%-" longest_namespace_len "s%8s%10s\n", "NAMESPACE", "CPU", "MEMORY")
 
-        for (namespace in namespaces) 
-            printf("%-" longest_namespace_len "s%8s%10s\n", namespace, cpu_pretty(req_cpu[namespace]), mem_pretty(req_mem[namespace]))
+        a_sort(nsindex)
+
+        for (z = 1; z in nsindex; z++) {
+            printf("%-" longest_namespace_len "s%8s%10s\n", nsindex[z], cpu_pretty(req_cpu[nsindex[z]]), mem_pretty(req_mem[nsindex[z]]))
+        }
     }
     ' <(get_pod_data) 
 }
 
 VIEW_UTILIZATION_AWK_FN='
+function a_sort(ary,   q, x, z){
+   for (q in ary)
+   {
+      x = ary[q]
+      for (z = q - 1; z && ary[z] > x; z--)
+      {
+         ary[z + 1] = ary[z]
+      }
+      ary[z + 1] = x
+   }
+   return a_join(ary, ORS)
+}
+
+function a_join(ary, sep,   q, x, z){
+   # argument order is copacetic with Ruby
+   for (q = 1; q in ary; q++)
+   {
+      if (x)
+      {
+         z = z sep ary[q]
+      }
+      else
+      {
+         z = ary[q]
+         x = 1
+      }
+   }
+   return z
+}
+
 function cpu_pretty(sum){
     if (sum < 10000) {
         ret = sprintf("%.2g",sum/1000)
@@ -155,10 +189,10 @@ function cpu_pretty(sum){
  
 function mem_pretty(sum){
     if (sum > 0) { 
-        hum[1024**3]="T";
-        hum[1024**2]="G";
-        hum[1024**1]="M";
-        for (x=1024**3; x>=1024; x/=1024){ 
+        hum[1024^3]="T";
+        hum[1024^2]="G";
+        hum[1024^1]="M";
+        for (x=1024^3; x>=1024; x/=1024){ 
             if (sum>=x) { 
                 if (sum/x <= 10){
                     ret = sprintf("%.2g%s",sum/x,hum[x]);break;
