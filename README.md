@@ -2,7 +2,7 @@
 
 This repository implements kubectl plugin for showing cluster resource utilization. 
 This is can be used to estimate cluster capacity and see at a glance overprovisioned resoures.
-I'ts useful to have such tool if you need to know if you have enough overhead to handle pod autoscaling
+It's useful to have such tool if you need to know if you have enough overhead to handle pod autoscaling
 without having to setting up more complicated metrics dashboards, especially when you have many smaller clusters.
 
 ## Installation
