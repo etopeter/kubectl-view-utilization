@@ -89,11 +89,12 @@ cluster_utilization() {
 
     awk \
     "$VIEW_UTILIZATION_AWK_FN"'
+    BEGIN {FS="\t"};
     NR==FNR { node[$1]; } 
 
     NR==FNR && $2 ~ /[0-9]$/ { alloc_cpu+=$2*1000; };
     NR==FNR && $2 ~ /m?$/    { alloc_cpu+=$2; };
-    NR==FNR && $3 ~ /Ki?$/   { alloc_mem+=$3;next };
+    NR==FNR && $3 ~ /Ki?$/   { alloc_mem+=$3; next };
 
     # CPU requests
     $2 in node && $3 ~ /[0-9]$/ { req_cpu+=$3*1000; };
