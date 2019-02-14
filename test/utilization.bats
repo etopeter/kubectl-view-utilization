@@ -201,6 +201,45 @@ switch_context() {
     [[ "${lines[1]}" == "memory  144G / 1.6T  (8%)" ]]
 }
 
+@test "cluster-bug1 (original-awk)> kubectl view utilization" {
+
+    use_awk original-awk
+    switch_context cluster-bug1
+
+    run /code/kubectl-view-utilization
+
+    [ $status -eq 0 ]
+    echo "${output}"
+    [[ "${lines[0]}" == "cores      0 / 6     (0%)" ]]
+    [[ "${lines[1]}" == "memory  3.4G / 3.9G  (86%)" ]]
+}
+
+@test "cluster-bug1 (gawk)> kubectl view utilization" {
+
+    use_awk gawk
+    switch_context cluster-bug1
+
+    run /code/kubectl-view-utilization
+
+    [ $status -eq 0 ]
+    echo "${output}"
+    [[ "${lines[0]}" == "cores      0 / 6     (0%)" ]]
+    [[ "${lines[1]}" == "memory  3.4G / 3.9G  (86%)" ]]
+}
+
+@test "cluster-bug1 (mawk)> kubectl view utilization" {
+
+    use_awk mawk
+    switch_context cluster-bug1
+
+    run /code/kubectl-view-utilization
+
+    [ $status -eq 0 ]
+    echo "${output}"
+    [[ "${lines[0]}" == "cores      0 / 6     (0%)" ]]
+    [[ "${lines[1]}" == "memory  3.4G / 3.9G  (86%)" ]]
+}
+
 @test "cluster-small (gawk)> kubectl view-utilization namespaces" {
 
     use_awk gawk
