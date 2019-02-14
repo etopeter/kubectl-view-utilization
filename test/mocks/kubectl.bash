@@ -1,7 +1,7 @@
 #!/bin/bash
 
 kubectl() {
-    local clusters=(cluster-small cluster-medium cluster-big)
+    local clusters=(cluster-small cluster-medium cluster-big cluster-bug1)
     if [ "${1}" == "config" ] && [ "${2}" == "use-context" ] && [[ "${clusters[*]}" =~ $3 ]]; then
         KUBECTL_CONTEXT="${3}"
         echo "setting context to ${3}"
@@ -30,6 +30,12 @@ kubectl() {
 
 
 kubectl_get_all_nodes_requests() {
+
+    if [ "${KUBECTL_CONTEXT}" == "cluster-bug1" ]; then 
+        echo "ip-10-1-1-10.us-west-2.compute.internal	2	1351126Ki"
+        echo "ip-10-1-1-11.us-west-2.compute.internal	4	2702252Ki"
+    fi
+
 
     if [ "${KUBECTL_CONTEXT}" == "cluster-small" ]; then 
         echo "ip-10-1-1-10.us-west-2.compute.internal	449m	1351126Ki"
@@ -104,6 +110,13 @@ kubectl_get_master_nodes_requests() {
 
 
 kubectl_get_all_pods_requests_with_namespaces() {
+
+    if [ "${KUBECTL_CONTEXT}" == "cluster-bug1" ]; then 
+        echo "infra	ip-10-1-1-10.us-west-2.compute.internal		1G"
+        echo "infra	ip-10-1-1-11.us-west-2.compute.internal		1500M"
+        echo "infra	ip-10-1-1-11.us-west-2.compute.internal		937500K"
+    fi
+
 
     if [ "${KUBECTL_CONTEXT}" == "cluster-small" ]; then 
         echo "default	ip-10-1-1-10.us-west-2.compute.internal	10m	"

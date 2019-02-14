@@ -201,6 +201,45 @@ switch_context() {
     [[ "${lines[1]}" == "memory  144G / 1.6T  (8%)" ]]
 }
 
+@test "cluster-bug1 (original-awk)> kubectl view utilization" {
+
+    use_awk original-awk
+    switch_context cluster-bug1
+
+    run /code/kubectl-view-utilization
+
+    [ $status -eq 0 ]
+    echo "${output}"
+    [[ "${lines[0]}" == "cores      0 / 6     (0%)" ]]
+    [[ "${lines[1]}" == "memory  3.4G / 3.9G  (86%)" ]]
+}
+
+@test "cluster-bug1 (gawk)> kubectl view utilization" {
+
+    use_awk gawk
+    switch_context cluster-bug1
+
+    run /code/kubectl-view-utilization
+
+    [ $status -eq 0 ]
+    echo "${output}"
+    [[ "${lines[0]}" == "cores      0 / 6     (0%)" ]]
+    [[ "${lines[1]}" == "memory  3.4G / 3.9G  (86%)" ]]
+}
+
+@test "cluster-bug1 (mawk)> kubectl view utilization" {
+
+    use_awk mawk
+    switch_context cluster-bug1
+
+    run /code/kubectl-view-utilization
+
+    [ $status -eq 0 ]
+    echo "${output}"
+    [[ "${lines[0]}" == "cores      0 / 6     (0%)" ]]
+    [[ "${lines[1]}" == "memory  3.4G / 3.9G  (86%)" ]]
+}
+
 @test "cluster-small (gawk)> kubectl view-utilization namespaces" {
 
     use_awk gawk
@@ -326,6 +365,47 @@ switch_context() {
     [[ "${lines[3]}" == "kube-system    0.27      434M" ]]
     [[ "${lines[6]}" == "stg              30       60G" ]]
 }
+
+@test "cluster-bug1 (original-awk)> kubectl view-utilization namespaces" {
+
+    use_awk original-awk
+    switch_context cluster-bug1
+
+    run /code/kubectl-view-utilization namespaces
+
+    [ $status -eq 0 ]
+    echo "${output}"
+    [[ "${lines[0]}" == "NAMESPACE     CPU    MEMORY" ]]
+    [[ "${lines[1]}" == "infra           0      3.4G" ]]
+}
+
+@test "cluster-bug1 (gawk)> kubectl view-utilization namespaces" {
+
+    use_awk gawk
+    switch_context cluster-bug1
+
+    run /code/kubectl-view-utilization namespaces
+
+    [ $status -eq 0 ]
+    echo "${output}"
+    [[ "${lines[0]}" == "NAMESPACE     CPU    MEMORY" ]]
+    [[ "${lines[1]}" == "infra           0      3.4G" ]]
+}
+
+@test "cluster-bug1 (mawk)> kubectl view-utilization namespaces" {
+
+    use_awk mawk
+    switch_context cluster-bug1
+
+    run /code/kubectl-view-utilization namespaces
+
+    [ $status -eq 0 ]
+    echo "${output}"
+    [[ "${lines[0]}" == "NAMESPACE     CPU    MEMORY" ]]
+    [[ "${lines[1]}" == "infra           0      3.4G" ]]
+}
+
+
 
 @test "cluster-small (gawk)> kubectl view-utilization masters" {
 
