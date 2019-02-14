@@ -19,7 +19,7 @@ Krew makes update process very simple. To update to latest version run `kubectl 
 For Kubernetes 1.12 or newer:
 ```shell
 mkdir -p ~/.kube/plugins/view-utilization && \
-curl -sL https://github.com/etopeter/kubectl-view-utilization/releases/download/v0.1.3/kubectl-view-utilization-v0.1.3.tar.gz | tar xzvf - -C ~/.kube/plugins/view-utilization
+curl -sL https://github.com/etopeter/kubectl-view-utilization/releases/download/v0.1.4/kubectl-view-utilization-v0.1.4.tar.gz | tar xzvf - -C ~/.kube/plugins/view-utilization
 export PATH=$PATH:~/.kube/plugins/view-utilization/
 ```
 
