@@ -257,6 +257,15 @@ while getopts "$optspec" optchar; do
                     val=${OPTARG#*=}
                     VIEW_UTILIZATION_NODE_LABEL="${val}"
                     ;;
+                output)
+                    val="${!OPTIND}"; OPTIND=$(( OPTIND + 1 ))
+                    if [[ "${val}" == "text" ]] || [[ "${val}" == "json" ]]; then
+                        VIEW_UTILIZATION_OUTPUT=$val
+                    else
+                        echo "valid values are text, json"
+                        exit 1
+                    fi
+                    ;;
                 *)
                     if [ "$OPTERR" = 1 ] && [ "${optspec:0:1}" != ":" ]; then
                         echo "Unknown option --${OPTARG}" >&2
@@ -304,9 +313,9 @@ while getopts "$optspec" optchar; do
             echo "" >&2
             echo "-n[--namespace]     filter by namespace" >&2
             echo "-l[--selector]      filter by node label" >&2
+            echo "-o[--output]        output [text/json] default text" >&2
             echo "-h                  prints help" >&2
             echo "-v                  prints version" >&2
-            echo "-o                  output [text/json] default text" >&2
             echo "subcommands:" >&2
             echo "    namespaces      shows namespace utilization" >&2
             exit 2
