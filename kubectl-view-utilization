@@ -103,10 +103,10 @@ cluster_utilization() {
     $2 in node && $3 ~ /m?$/    { req_cpu+=$3; };
 
     # memory requests
-    $2 in node && $4 ~ /K(i)?$/ { req_mem+=$4; next };
-    $2 in node && $4 ~ /M(i)?$/ { req_mem+=$4*1024; next };
-    $2 in node && $4 ~ /G(i)?$/ { req_mem+=$4*1048576; next };
-    $2 in node && $4 ~ /T(i)?$/ { req_mem+=$4*1073741824; next };
+    $2 in node && $4 ~ /[kK](i)?$/ { req_mem+=$4; next };
+    $2 in node && $4 ~ /[mM](i)?$/ { req_mem+=$4*1024; next };
+    $2 in node && $4 ~ /[gG](i)?$/ { req_mem+=$4*1048576; next };
+    $2 in node && $4 ~ /[tT](i)?$/ { req_mem+=$4*1073741824; next };
     END {
         if ( output == "text" ) {
         if ( alloc_cpu > 0 && alloc_mem > 0 ) {
@@ -146,10 +146,10 @@ namespace_utilization() {
     $3 ~ /m?$/    { req_cpu[$1]+=$3; };
 
     # memory requests
-    $4 ~ /K(i)?$/ { req_mem[$1]+=$4; next };
-    $4 ~ /M(i)?$/ { req_mem[$1]+=$4*1024; next };
-    $4 ~ /G(i)?$/ { req_mem[$1]+=$4*1048576; next };
-    $4 ~ /T(i)?$/ { req_mem[$1]+=$4*1073741824; next };
+    $4 ~ /[kK](i)?$/ { req_mem[$1]+=$4; next };
+    $4 ~ /[mM](i)?$/ { req_mem[$1]+=$4*1024; next };
+    $4 ~ /[gG](i)?$/ { req_mem[$1]+=$4*1048576; next };
+    $4 ~ /[tT](i)?$/ { req_mem[$1]+=$4*1073741824; next };
 
     END {
 
