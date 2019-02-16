@@ -21,6 +21,7 @@
 PLUGIN_VERSION="v0.1.4"
 VIEW_UTILIZATION_NAMESPACE=""
 VIEW_UTILIZATION_NODE_LABEL=""
+VIEW_UTILIZATION_OUTPUT="text"
 
 print_plugin_version() {
     echo "${PLUGIN_VERSION}"
@@ -88,6 +89,7 @@ get_node_data() {
 cluster_utilization() {
 
     awk \
+    -v output="${VIEW_UTILIZATION_OUTPUT}" \
     "$VIEW_UTILIZATION_AWK_FN"'
     BEGIN {FS="\t"};
     NR==FNR { node[$1]; } 
@@ -106,12 +108,30 @@ cluster_utilization() {
     $2 in node && $4 ~ /G(i)?$/ { req_mem+=$4*1048576; next };
     $2 in node && $4 ~ /T(i)?$/ { req_mem+=$4*1073741824; next };
     END {
+        if ( output == "text" ) {
         if ( alloc_cpu > 0 && alloc_mem > 0 ) {
             printf("cores  %5s / %-5s (%d%%)\n", cpu_pretty(req_cpu), cpu_pretty(alloc_cpu), req_cpu * 100 / alloc_cpu);
             printf("memory %5s / %-5s (%d%%)\n", mem_pretty(req_mem), mem_pretty(alloc_mem), req_mem * 100 / alloc_mem);
         }
+        } 
+
+        if ( output == "json" ) {
+            printf("{");
+            printf("\"CPU\": {");
+            printf("\"requested\": %s,", req_cpu);
+            printf("\"allocatable\": %s,", alloc_cpu);
+            printf("\"utilization\": %d", req_cpu * 100 / alloc_cpu);
+            printf("},");
+
+            printf("\"Memory\": {");
+            printf("\"requested\": %s,", req_mem);
+            printf("\"allocatable\": %s,", alloc_mem);
+            printf("\"utilization\": %d", req_mem * 100 / alloc_mem);
+            printf("}");
+            printf("}");
+        }
     }
-    ' <(get_node_data) <(get_pod_data) 
+    ' <(get_node_data) <(get_pod_data)
 }
 
 namespace_utilization() {
@@ -216,7 +236,7 @@ function mem_pretty(sum){
 
 
 
-optspec=":nlhv-:"
+optspec=":nlohv-:"
 while getopts "$optspec" optchar; do
     case "${optchar}" in
         -)
@@ -263,6 +283,22 @@ while getopts "$optspec" optchar; do
             fi
             shift
             ;;
+        o)
+            shift
+            if test $# -gt 0; then
+                if [[ "${1}" == "text" ]] || [[ "${1}" == "json" ]]; then
+                    VIEW_UTILIZATION_OUTPUT=$1
+                else
+                    echo "valid values are text, json"
+                    exit 1
+                fi
+            else
+                echo "no output specified"
+                exit 1
+            fi
+            shift
+            ;;
+
         h)
             echo "usage: $0 [-v] [--namespace[=]<value>]" >&2
             echo "" >&2
@@ -270,6 +306,7 @@ while getopts "$optspec" optchar; do
             echo "-l[--selector]      filter by node label" >&2
             echo "-h                  prints help" >&2
             echo "-v                  prints version" >&2
+            echo "-o                  output [text/json] default text" >&2
             echo "subcommands:" >&2
             echo "    namespaces      shows namespace utilization" >&2
             exit 2
