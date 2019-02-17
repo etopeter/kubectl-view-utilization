@@ -22,6 +22,7 @@ PLUGIN_VERSION="v0.1.4"
 VIEW_UTILIZATION_NAMESPACE=""
 VIEW_UTILIZATION_NODE_LABEL=""
 VIEW_UTILIZATION_OUTPUT="text"
+VIEW_UTILIZATION_SUBCOMMAND=""
 
 print_plugin_version() {
     echo "${PLUGIN_VERSION}"
@@ -137,6 +138,7 @@ cluster_utilization() {
 namespace_utilization() {
 
     awk \
+    -v output="${VIEW_UTILIZATION_OUTPUT}" \
     "$VIEW_UTILIZATION_AWK_FN"'
     BEGIN {FS="\t"};
     namespaces[$1];
@@ -153,20 +155,40 @@ namespace_utilization() {
 
     END {
 
-        i=1;
+        total_records=0;
         for (namespace in namespaces) {
-            nsindex[i]=namespace;
-            i++;
+            total_records++;
+            nsindex[total_records]=namespace;
             if (longest_namespace_len < length(namespace)) longest_namespace_len = length(namespace)
         }
         if (longest_namespace_len < 9 ) longest_namespace_len = 9
 
-        printf("%-" longest_namespace_len "s%8s%10s\n", "NAMESPACE", "CPU", "MEMORY")
-
+        # sort namespaces alphabetically
         a_sort(nsindex)
 
-        for (z = 1; z in nsindex; z++) {
-            printf("%-" longest_namespace_len "s%8s%10s\n", nsindex[z], cpu_pretty(req_cpu[nsindex[z]]), mem_pretty(req_mem[nsindex[z]]))
+        if ( output == "text" ) {
+
+            printf("%-" longest_namespace_len "s%8s%10s\n", "NAMESPACE", "CPU", "MEMORY")
+            for (z = 1; z in nsindex; z++) {
+                printf("%-" longest_namespace_len "s%8s%10s\n", nsindex[z], cpu_pretty(req_cpu[nsindex[z]]), mem_pretty(req_mem[nsindex[z]]))
+            }
+        }
+
+        if ( output == "json" ) {
+            printf("{");
+
+            for (z = 1; z in nsindex; z++) {
+                printf("\"%s\": {", nsindex[z]);
+                printf("\"CPU\": {");
+                printf("\"requested\": %s", (req_cpu[nsindex[z]]=="" ? "0" : req_cpu[nsindex[z]]));
+                printf("},");
+                printf("\"Memory\": {");
+                printf("\"requested\": %s", (req_mem[nsindex[z]]=="" ? "0" : req_mem[nsindex[z]]));
+                printf("}");
+                separator = (z < total_records ? "," : "");
+                printf("}%s",separator);
+            }
+            printf("}");
         }
     }
     ' <(get_pod_data) 
@@ -235,6 +257,10 @@ function mem_pretty(sum){
 
 
 
+if [ "${1}" == "namespaces" ]; then
+    VIEW_UTILIZATION_SUBCOMMAND="namespaces"
+    shift;
+fi
 
 optspec=":nlohv-:"
 while getopts "$optspec" optchar; do
@@ -259,6 +285,15 @@ while getopts "$optspec" optchar; do
                     ;;
                 output)
                     val="${!OPTIND}"; OPTIND=$(( OPTIND + 1 ))
+                    if [[ "${val}" == "text" ]] || [[ "${val}" == "json" ]]; then
+                        VIEW_UTILIZATION_OUTPUT=$val
+                    else
+                        echo "valid values are text, json"
+                        exit 1
+                    fi
+                    ;;
+                output=*)
+                    val=${OPTARG#*=}
                     if [[ "${val}" == "text" ]] || [[ "${val}" == "json" ]]; then
                         VIEW_UTILIZATION_OUTPUT=$val
                     else
@@ -318,7 +353,7 @@ while getopts "$optspec" optchar; do
             echo "-v                  prints version" >&2
             echo "subcommands:" >&2
             echo "    namespaces      shows namespace utilization" >&2
-            exit 2
+            exit
             ;;
         v)
             print_plugin_version
@@ -331,7 +366,7 @@ while getopts "$optspec" optchar; do
     esac
 done
 
-if [ "${1}" == "namespaces" ]; then
+if [ "${VIEW_UTILIZATION_SUBCOMMAND}" == "namespaces" ]; then
     namespace_utilization
 else
     cluster_utilization
