@@ -16,14 +16,6 @@ switch_context() {
     [[ "${lines[0]}" == "${1}" ]]
 }
 
-@test "kubectl view utilization -v" {
-
-    run /code/kubectl-view-utilization -v
-    [ $status -eq 0 ]
-    echo "output = ${output}"
-    [[ "$output" == v* ]]
-}
-
 @test "cluster-small> kubectl get nodes allocatable cpu and memory" {
 
     switch_context cluster-small
@@ -96,17 +88,29 @@ switch_context() {
     [[ "${lines[14]}" == "qa	ip-10-1-1-15.us-west-2.compute.internal	2	1G" ]]
 }
 
-@test "cluster-small (gawk)> kubectl view utilization" {
+@test "cluster-small (gawk)> kubectl view utilization -o text" {
 
     use_awk gawk 
     switch_context cluster-small
 
-    run /code/kubectl-view-utilization
+    run /code/kubectl-view-utilization -o text
 
     [ $status -eq 0 ]
     echo "${output}"
     [[ "${lines[0]}" == "cores   0.07 / 0.9   (7%)" ]]
     [[ "${lines[1]}" == "memory  364M / 2.6G  (13%)" ]]
+}
+
+@test "cluster-small (gawk)> kubectl view utilization -o json" {
+
+    use_awk gawk 
+    switch_context cluster-small
+
+    run /code/kubectl-view-utilization -o json
+
+    [ $status -eq 0 ]
+    echo "${output}"
+    [[ "${lines[0]}" == '{"CPU": {"requested": 70,"allocatable": 898,"utilization": 7},"Memory": {"requested": 372736,"allocatable": 2702252,"utilization": 13}}' ]]
 }
 
 
@@ -251,6 +255,18 @@ switch_context() {
     echo "${output}"
     [[ "${lines[0]}" == "NAMESPACE       CPU    MEMORY" ]]
     [[ "${lines[2]}" == "kube-system    0.01       64M" ]]
+}
+
+@test "cluster-small (gawk)> kubectl view-utilization namespaces -o json" {
+
+    use_awk gawk
+    switch_context cluster-small
+
+    run /code/kubectl-view-utilization namespaces -o json
+
+    [ $status -eq 0 ]
+    echo "${output}"
+    [[ "${lines[0]}" == '{"default": {"CPU": {"requested": 60},"Memory": {"requested": 307200}},"kube-system": {"CPU": {"requested": 10},"Memory": {"requested": 65536}}}' ]]
 }
 
 @test "cluster-small (mawk)> kubectl view-utilization namespaces" {
@@ -399,8 +415,8 @@ switch_context() {
 
     run /code/kubectl-view-utilization namespaces
 
-    [ $status -eq 0 ]
     echo "${output}"
+    [ $status -eq 0 ]
     [[ "${lines[0]}" == "NAMESPACE     CPU    MEMORY" ]]
     [[ "${lines[1]}" == "infra           0      3.4G" ]]
 }
