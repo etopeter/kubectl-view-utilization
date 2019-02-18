@@ -1,4 +1,8 @@
-language: bash
+language: generic
+addons:
+  apt:
+    packages:
+      - libcurl4-openssl-dev
 
 services:
   - docker
@@ -8,3 +12,6 @@ before_install:
 
 script:
 - make test
+
+after_success: |
+  bash <(curl -s https://codecov.io/bash)

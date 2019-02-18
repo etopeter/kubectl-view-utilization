@@ -17,7 +17,6 @@
 # Prints cluster resource utilization
 
 
-
 PLUGIN_VERSION="v0.1.4"
 VIEW_UTILIZATION_NAMESPACE=""
 VIEW_UTILIZATION_NODE_LABEL=""
@@ -223,6 +222,24 @@ function a_join(ary, sep,   q, x, z){
    return z
 }
 
+function calc_free(requests, total) {
+    if ( total >= requests ) {
+        return (total - requests)
+    } else {
+        return "0"
+    }
+}
+
+function calc_percentage(a,b){
+    if ( a > 0 && b > 0 ) {
+        return sprintf("%d", a * 100 / b);
+    } else if ( b > 0 ) {
+        return "0";
+    } else {
+        return "Err";
+    }
+}
+
 function cpu_pretty(sum){
     if (sum < 10000) {
         ret = sprintf("%.2g",sum/1000)
@@ -233,22 +250,23 @@ function cpu_pretty(sum){
 }
  
 function mem_pretty(sum){
-    if (sum > 0) { 
+    if (sum > 0) {
         hum[1024^3]="T";
         hum[1024^2]="G";
         hum[1024^1]="M";
-        for (x=1024^3; x>=1024; x/=1024){ 
+        hum[1]="K";
+        for (x=1024^3; x>=0; x/=1024){ 
             if (sum>=x) { 
                 if (sum/x <= 10){
                     ret = sprintf("%.2g%s",sum/x,hum[x]);break;
                 } else {
-                ret = sprintf("%.f%s",sum/x,hum[x]);break;
+                    ret = sprintf("%.f%s",sum/x,hum[x]);break;
                 }
             }
         }
     } else {
-    return 0
-}
+        return "0"
+    }
     return ret
 }
 '
