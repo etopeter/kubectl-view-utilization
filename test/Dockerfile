@@ -1,7 +1,6 @@
 FROM ubuntu:18.04
 RUN apt-get update && apt-get install -yq gawk mawk original-awk ruby
 
-
 # Install Bats
 ADD https://github.com/sstephenson/bats/archive/v0.4.0.tar.gz /tmp/v0.4.0.tar.gz
 
