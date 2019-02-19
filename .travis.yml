@@ -9,7 +9,7 @@ services:
 
 before_install:
 - docker pull etopeter/kubectl-utilization-test
-- mkdir coverage && chown 1000 coverage
+- mkdir coverage && sudo chown 1000 coverage
 
 script:
 - make test
