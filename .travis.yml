@@ -1,16 +1,10 @@
-language: bash
-addons:
-  apt:
-    packages:
-      - libcurl4-openssl-dev
+language: generic
 
 services:
   - docker
 
 before_install:
 - docker pull etopeter/kubectl-utilization-test
-- mkdir coverage && sudo chown 1000 coverage
 
 script:
 - make test
-- bash <(curl -s https://codecov.io/bash)
