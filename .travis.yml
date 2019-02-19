@@ -5,6 +5,7 @@ services:
 
 before_install:
 - docker pull etopeter/kubectl-utilization-test
+- mkdir coverage && sudo chown 1000 coverage
 
 script:
 - make test
