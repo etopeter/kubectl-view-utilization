@@ -8,4 +8,4 @@ before_install:
 - mkdir coverage && sudo chown 1000 coverage
 
 script:
-- make test
+- make test-ci
