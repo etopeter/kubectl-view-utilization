@@ -4,5 +4,5 @@
 all: test
 
 test:
-	docker run -it -v $(CURDIR):/code etopeter/kubectl-utilization-test:latest /code/test
+	docker run --rm -it -v $(CURDIR):/code etopeter/kubectl-utilization-test:latest /usr/local/bin/bats /code/test
 

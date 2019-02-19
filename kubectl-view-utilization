@@ -17,7 +17,6 @@
 # Prints cluster resource utilization
 
 
-
 PLUGIN_VERSION="v0.1.4"
 VIEW_UTILIZATION_NAMESPACE=""
 VIEW_UTILIZATION_NODE_LABEL=""
@@ -83,16 +82,15 @@ get_node_data() {
         node_label="-l ${VIEW_UTILIZATION_NODE_LABEL}"
     fi
 
+    # shellcheck disable=SC2086
     kubectl get nodes $node_label -o=jsonpath="{range .items[*]}{.metadata.name}{'\t'}{.status.allocatable.cpu}{'\t'}{.status.allocatable.memory}{'\n'}{end}"
 }
 
 
 cluster_utilization() {
 
-    awk \
-    -v output="${VIEW_UTILIZATION_OUTPUT}" \
-    "$VIEW_UTILIZATION_AWK_FN"'
-    BEGIN {FS="\t"};
+    # shellcheck disable=SC2016
+    awkcmd='BEGIN {FS="\t"};
     NR==FNR { node[$1]; } 
 
     NR==FNR && $2 ~ /[0-9]$/ { alloc_cpu+=$2*1000; };
@@ -110,10 +108,9 @@ cluster_utilization() {
     $2 in node && $4 ~ /[tT](i)?$/ { req_mem+=$4*1073741824; next };
     END {
         if ( output == "text" ) {
-        if ( alloc_cpu > 0 && alloc_mem > 0 ) {
-            printf("cores  %5s / %-5s (%d%%)\n", cpu_pretty(req_cpu), cpu_pretty(alloc_cpu), req_cpu * 100 / alloc_cpu);
-            printf("memory %5s / %-5s (%d%%)\n", mem_pretty(req_mem), mem_pretty(alloc_mem), req_mem * 100 / alloc_mem);
-        }
+            printf("%-8s  %4s  %4s  %5s  %4s\n", "Resource", "Req", "%Req", "Alloc", "Free");
+            printf("%-8s  %4s  %3s%%  %5s  %4s\n", "CPU", cpu_pretty(req_cpu), calc_percentage(req_cpu, alloc_cpu), cpu_pretty(alloc_cpu), cpu_pretty(calc_free(req_cpu, alloc_cpu)));
+            printf("%-8s  %4s  %3s%%  %5s  %4s\n", "Memory", mem_pretty(req_mem), calc_percentage(req_mem, alloc_mem), mem_pretty(alloc_mem), mem_pretty(calc_free(req_mem, alloc_mem)));
         } 
 
         if ( output == "json" ) {
@@ -132,15 +129,14 @@ cluster_utilization() {
             printf("}");
         }
     }
-    ' <(get_node_data) <(get_pod_data)
+    '
+    awk -v output="${VIEW_UTILIZATION_OUTPUT}" "${VIEW_UTILIZATION_AWK_FN}${awkcmd}" <(get_node_data) <(get_pod_data)
 }
 
 namespace_utilization() {
 
-    awk \
-    -v output="${VIEW_UTILIZATION_OUTPUT}" \
-    "$VIEW_UTILIZATION_AWK_FN"'
-    BEGIN {FS="\t"};
+    # shellcheck disable=SC2016
+    awkcmd='BEGIN {FS="\t"};
     namespaces[$1];
 
     # CPU requests
@@ -191,7 +187,8 @@ namespace_utilization() {
             printf("}");
         }
     }
-    ' <(get_pod_data) 
+    '
+    awk -v output="${VIEW_UTILIZATION_OUTPUT}" "${VIEW_UTILIZATION_AWK_FN}${awkcmd}" <(get_pod_data) 
 }
 
 VIEW_UTILIZATION_AWK_FN='
@@ -225,6 +222,24 @@ function a_join(ary, sep,   q, x, z){
    return z
 }
 
+function calc_free(requests, total) {
+    if ( total >= requests ) {
+        return (total - requests)
+    } else {
+        return "0"
+    }
+}
+
+function calc_percentage(a,b){
+    if ( a > 0 && b > 0 ) {
+        return sprintf("%d", a * 100 / b);
+    } else if ( b > 0 ) {
+        return "0";
+    } else {
+        return "Err";
+    }
+}
+
 function cpu_pretty(sum){
     if (sum < 10000) {
         ret = sprintf("%.2g",sum/1000)
@@ -235,22 +250,23 @@ function cpu_pretty(sum){
 }
  
 function mem_pretty(sum){
-    if (sum > 0) { 
+    if (sum > 0) {
         hum[1024^3]="T";
         hum[1024^2]="G";
         hum[1024^1]="M";
-        for (x=1024^3; x>=1024; x/=1024){ 
+        hum[1]="K";
+        for (x=1024^3; x>=0; x/=1024){ 
             if (sum>=x) { 
                 if (sum/x <= 10){
                     ret = sprintf("%.2g%s",sum/x,hum[x]);break;
                 } else {
-                ret = sprintf("%.f%s",sum/x,hum[x]);break;
+                    ret = sprintf("%.f%s",sum/x,hum[x]);break;
                 }
             }
         }
     } else {
-    return 0
-}
+        return "0"
+    }
     return ret
 }
 '
@@ -269,11 +285,21 @@ while getopts "$optspec" optchar; do
             case "${OPTARG}" in
                 namespace)
                     val="${!OPTIND}"; OPTIND=$(( OPTIND + 1 ))
-                    VIEW_UTILIZATION_NAMESPACE="${val}"
+                    if [[ "${val}" != "" ]]; then
+                        VIEW_UTILIZATION_NAMESPACE="${val}"
+                    else 
+                        echo "no namespace specified"
+                        exit 1
+                    fi
                     ;;
                 namespace=*)
                     val=${OPTARG#*=}
-                    VIEW_UTILIZATION_NAMESPACE="${val}"
+                    if [[ "${val}" != "" ]]; then
+                        VIEW_UTILIZATION_NAMESPACE="${val}"
+                    else 
+                        echo "no namespace specified"
+                        exit 1
+                    fi
                     ;;
                 selector)
                     val="${!OPTIND}"; OPTIND=$(( OPTIND + 1 ))
@@ -302,9 +328,8 @@ while getopts "$optspec" optchar; do
                     fi
                     ;;
                 *)
-                    if [ "$OPTERR" = 1 ] && [ "${optspec:0:1}" != ":" ]; then
-                        echo "Unknown option --${OPTARG}" >&2
-                    fi
+                    echo "Unknown option --${OPTARG}" >&2
+                    exit 1
                     ;;
             esac;;
         n)
