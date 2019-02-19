@@ -8,14 +8,6 @@ switch_context() {
     [[ "${lines[0]}" == "${1}" ]]
 }
 
-setup() {
-  export TMP="$BATS_TEST_DIRNAME/tmp"
-}
-
-teardown() {
-  [ -d "$TMP" ] && rm -f "$TMP"/*
-}
-
 function awk() {
     /usr/bin/$VIEW_UTILIZATION_AWK "$@"
 }
