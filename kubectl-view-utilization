@@ -44,17 +44,35 @@ get_pod_data() {
 
             {{ $namespace }}
             {{ "\t" }}
-             
+
             {{ $node }}
             {{"\t"}}
 
             {{ if .resources.requests.cpu }}
                 {{ .resources.requests.cpu }}
+            {{ else }}
+                0
             {{end}}
             {{ "\t" }}
 
             {{ if .resources.requests.memory }}
                 {{ .resources.requests.memory }}
+            {{ else }}
+                0Ki
+            {{end}}
+            {{ "\t" }}
+
+            {{ if .resources.limits.cpu }}
+                {{ .resources.limits.cpu }}
+            {{ else }}
+                0
+            {{end}}
+            {{ "\t" }}
+
+            {{ if .resources.limits.memory }}
+                {{ .resources.limits.memory }}
+            {{ else }}
+                0Ki
             {{end}}
 
             {{ "\n" }}
@@ -64,7 +82,7 @@ get_pod_data() {
 EOF
 
     # Debug
-    #echo "${template//[$' \t\r\n']}"
+    # echo "${template//[$' \t\r\n']}" >&2
 
     if [ "${VIEW_UTILIZATION_NAMESPACE}" != "" ]; then
         namespace="--namespace=${VIEW_UTILIZATION_NAMESPACE}"
@@ -91,38 +109,52 @@ cluster_utilization() {
 
     # shellcheck disable=SC2016
     awkcmd='BEGIN {FS="\t"};
-    NR==FNR { node[$1]; } 
+    NR==FNR { node[$1]; }
 
     NR==FNR && $2 ~ /[0-9]$/ { alloc_cpu+=$2*1000; };
     NR==FNR && $2 ~ /m?$/    { alloc_cpu+=$2; };
-    NR==FNR && $3 ~ /Ki?$/   { alloc_mem+=$3; next };
+    NR==FNR && $3 ~ /Ki?$/   { alloc_mem+=$3*1024; next };
 
     # CPU requests
     $2 in node && $3 ~ /[0-9]$/ { req_cpu+=$3*1000; };
     $2 in node && $3 ~ /m?$/    { req_cpu+=$3; };
 
     # memory requests
-    $2 in node && $4 ~ /[kK](i)?$/ { req_mem+=$4; next };
-    $2 in node && $4 ~ /[mM](i)?$/ { req_mem+=$4*1024; next };
-    $2 in node && $4 ~ /[gG](i)?$/ { req_mem+=$4*1048576; next };
-    $2 in node && $4 ~ /[tT](i)?$/ { req_mem+=$4*1073741824; next };
+    $2 in node && $4 ~ /m$/         { req_mem+=$4/1000; next };  # there is a bug where bytes are given a unit of "m" but multiplied by 1000
+    $2 in node && $4 ~ /[kK](i)?$/  { req_mem+=$4*1024; };
+    $2 in node && $4 ~ /M(i)?$/     { req_mem+=$4*1048576; };
+    $2 in node && $4 ~ /[gG](i)?$/  { req_mem+=$4*1073741824; };
+    $2 in node && $4 ~ /[tT](i)?$/  { req_mem+=$4*1099511627776; };
+
+    # CPU limits
+    $2 in node && $5 ~ /[0-9]$/ { lim_cpu+=$5*1000; };
+    $2 in node && $5 ~ /m?$/    { lim_cpu+=$5; };
+
+    # memory limits
+    $2 in node && $6 ~ /m$/         { lim_mem+=$6/1000; next };  # there is a bug where bytes are given a unit of "m" but multiplied by 1000
+    $2 in node && $6 ~ /[kK](i)?$/  { lim_mem+=$6*1024; next };
+    $2 in node && $6 ~ /M(i)?$/     { lim_mem+=$6*1048576; next };
+    $2 in node && $6 ~ /[gG](i)?$/  { lim_mem+=$6*1073741824; next };
+    $2 in node && $6 ~ /[tT](i)?$/  { lim_mem+=$6*1099511627776; next };
     END {
         if ( output == "text" ) {
-            printf("%-8s  %4s  %4s  %5s  %4s\n", "Resource", "Req", "%Req", "Alloc", "Free");
-            printf("%-8s  %4s  %3s%%  %5s  %4s\n", "CPU", cpu_pretty(req_cpu), calc_percentage(req_cpu, alloc_cpu), cpu_pretty(alloc_cpu), cpu_pretty(calc_free(req_cpu, alloc_cpu)));
-            printf("%-8s  %4s  %3s%%  %5s  %4s\n", "Memory", mem_pretty(req_mem), calc_percentage(req_mem, alloc_mem), mem_pretty(alloc_mem), mem_pretty(calc_free(req_mem, alloc_mem)));
-        } 
+            printf("%-8s  %4s  %4s  %4s  %4s  %5s  %4s\n", "Resource", "Req", "%Req", "Lim", "%Lim", "Alloc", "Free");
+            printf("%-8s  %4s  %3s%%  %4s  %3s%%  %5s  %4s\n", "CPU", cpu_pretty(req_cpu), calc_percentage(req_cpu, alloc_cpu), cpu_pretty(lim_cpu), calc_percentage(lim_cpu, alloc_cpu), cpu_pretty(alloc_cpu), cpu_pretty(calc_free(req_cpu, alloc_cpu)));
+            printf("%-8s  %4s  %3s%%  %4s  %3s%%  %5s  %4s\n", "Memory", mem_pretty(req_mem), calc_percentage(req_mem, alloc_mem), mem_pretty(lim_mem), calc_percentage(lim_mem, alloc_mem), mem_pretty(alloc_mem), mem_pretty(calc_free(req_mem, alloc_mem)));
+        }
 
         if ( output == "json" ) {
             printf("{");
             printf("\"CPU\": {");
             printf("\"requested\": %s,", req_cpu);
+            printf("\"limits\": %s,", lim_cpu);
             printf("\"allocatable\": %s,", alloc_cpu);
             printf("\"utilization\": %d", req_cpu * 100 / alloc_cpu);
             printf("},");
 
             printf("\"Memory\": {");
             printf("\"requested\": %s,", req_mem);
+            printf("\"limits\": %s,", lim_mem);
             printf("\"allocatable\": %s,", alloc_mem);
             printf("\"utilization\": %d", req_mem * 100 / alloc_mem);
             printf("}");
@@ -144,10 +176,22 @@ namespace_utilization() {
     $3 ~ /m?$/    { req_cpu[$1]+=$3; };
 
     # memory requests
-    $4 ~ /[kK](i)?$/ { req_mem[$1]+=$4; next };
-    $4 ~ /[mM](i)?$/ { req_mem[$1]+=$4*1024; next };
-    $4 ~ /[gG](i)?$/ { req_mem[$1]+=$4*1048576; next };
-    $4 ~ /[tT](i)?$/ { req_mem[$1]+=$4*1073741824; next };
+    $4 ~ /m$/         { req_mem[$1]+=$4/1000; };   # there is a bug where bytes are given a unit of "m" but multiplied by 1000
+    $4 ~ /[kK](i)?$/  { req_mem[$1]+=$4*1024; };
+    $4 ~ /M(i)?$/     { req_mem[$1]+=$4*1048576; };
+    $4 ~ /[gG](i)?$/  { req_mem[$1]+=$4*1073741824; };
+    $4 ~ /[tT](i)?$/  { req_mem[$1]+=$4*1099511627776; };
+
+    # CPU limits
+    $5 ~ /[0-9]$/ { lim_cpu[$1]+=$5*1000; };
+    $5 ~ /m?$/    { lim_cpu[$1]+=$5; };
+
+    # memory limits
+    $6 ~ /m$/         { lim_mem[$1]+=$6/1000; next };  # there is a bug where bytes are given a unit of "m" but multiplied by 1000
+    $6 ~ /[kK](i)?$/  { lim_mem[$1]+=$6*1024; next };
+    $6 ~ /M(i)?$/     { lim_mem[$1]+=$6*1048576; next };
+    $6 ~ /[gG](i)?$/  { lim_mem[$1]+=$6*1073741824; next };
+    $6 ~ /[tT](i)?$/  { lim_mem[$1]+=$6*1099511627776; next };
 
     END {
 
@@ -164,9 +208,9 @@ namespace_utilization() {
 
         if ( output == "text" ) {
 
-            printf("%-" longest_namespace_len "s%8s%10s\n", "NAMESPACE", "CPU", "MEMORY")
+            printf("%-" longest_namespace_len "s%17s%15s%20s%18s\n", "NAMESPACE", "CPU Requests", "CPU Limits", "Memory Requests", "Memory Limits")
             for (z = 1; z in nsindex; z++) {
-                printf("%-" longest_namespace_len "s%8s%10s\n", nsindex[z], cpu_pretty(req_cpu[nsindex[z]]), mem_pretty(req_mem[nsindex[z]]))
+                printf("%-" longest_namespace_len "s%17s%15s%20s%18s\n", nsindex[z], cpu_pretty(req_cpu[nsindex[z]]), cpu_pretty(lim_cpu[nsindex[z]]), mem_pretty(req_mem[nsindex[z]]), mem_pretty(lim_mem[nsindex[z]]))
             }
         }
 
@@ -176,10 +220,12 @@ namespace_utilization() {
             for (z = 1; z in nsindex; z++) {
                 printf("\"%s\": {", nsindex[z]);
                 printf("\"CPU\": {");
-                printf("\"requested\": %s", (req_cpu[nsindex[z]]=="" ? "0" : req_cpu[nsindex[z]]));
+                printf("\"requested\": %s,", (req_cpu[nsindex[z]]=="" ? "0" : req_cpu[nsindex[z]]));
+                printf("\"limits\": %s", (lim_cpu[nsindex[z]]=="" ? "0" : lim_cpu[nsindex[z]]));
                 printf("},");
                 printf("\"Memory\": {");
-                printf("\"requested\": %s", (req_mem[nsindex[z]]=="" ? "0" : req_mem[nsindex[z]]));
+                printf("\"requested\": %s,", (req_mem[nsindex[z]]=="" ? "0" : req_mem[nsindex[z]]));
+                printf("\"limits\": %s", (lim_mem[nsindex[z]]=="" ? "0" : lim_mem[nsindex[z]]));
                 printf("}");
                 separator = (z < total_records ? "," : "");
                 printf("}%s",separator);
@@ -188,7 +234,7 @@ namespace_utilization() {
         }
     }
     '
-    awk -v output="${VIEW_UTILIZATION_OUTPUT}" "${VIEW_UTILIZATION_AWK_FN}${awkcmd}" <(get_pod_data) 
+    awk -v output="${VIEW_UTILIZATION_OUTPUT}" "${VIEW_UTILIZATION_AWK_FN}${awkcmd}" <(get_pod_data)
 }
 
 VIEW_UTILIZATION_AWK_FN='
@@ -248,15 +294,16 @@ function cpu_pretty(sum){
     }
     return ret
 }
- 
+
 function mem_pretty(sum){
     if (sum > 0) {
-        hum[1024^3]="T";
-        hum[1024^2]="G";
-        hum[1024^1]="M";
-        hum[1]="K";
-        for (x=1024^3; x>=0; x/=1024){ 
-            if (sum>=x) { 
+        hum[1024^4]="T";
+        hum[1024^3]="G";
+        hum[1024^2]="M";
+        hum[1024^1]="K";
+        hum[1]="";
+        for (x=1024^4; x>=0; x/=1024){
+            if (sum>=x) {
                 if (sum/x <= 10){
                     ret = sprintf("%.2g%s",sum/x,hum[x]);break;
                 } else {
