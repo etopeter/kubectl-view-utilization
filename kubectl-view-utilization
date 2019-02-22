@@ -159,8 +159,8 @@ cluster_utilization() {
             req_header=prettify("Requests", "Req")
             req_width=calc_max_width(req_header, req_cpu_text, req_mem_text)
 
-            percent_req_cpu_text=calc_percentage(req_cpu, alloc_cpu)
-            percent_req_mem_text=calc_percentage(req_mem, alloc_mem)
+            percent_req_cpu_text=prettify(calc_percentage(req_cpu, alloc_cpu), sprintf("%s%%", calc_percentage(req_cpu, alloc_cpu)))
+            percent_req_mem_text=prettify(calc_percentage(req_mem, alloc_mem), sprintf("%s%%", calc_percentage(req_mem, alloc_mem)))
             percent_req_header=prettify("%Requests", "%R")
             percent_req_width=calc_max_width(percent_req_header, percent_req_cpu_text, percent_req_mem_text)
 
@@ -169,8 +169,8 @@ cluster_utilization() {
             lim_header=prettify("Limits", "Lim")
             lim_width=calc_max_width(lim_header, lim_cpu_text, lim_mem_text)
 
-            percent_lim_cpu_text=calc_percentage(lim_cpu, alloc_cpu)
-            percent_lim_mem_text=calc_percentage(lim_mem, alloc_mem)
+            percent_lim_cpu_text=prettify(calc_percentage(lim_cpu, alloc_cpu), sprintf("%s%%", calc_percentage(lim_cpu, alloc_cpu)))
+            percent_lim_mem_text=prettify(calc_percentage(lim_mem, alloc_mem), sprintf("%s%%", calc_percentage(lim_mem, alloc_mem)))
             percent_lim_header=prettify("%Limits", "%L")
             percent_lim_width=calc_max_width(percent_lim_header, percent_lim_cpu_text, percent_lim_mem_text)
 
@@ -497,6 +497,7 @@ while getopts "$optspec" optchar; do
         *)
             if [ "$OPTERR" != 1 ] || [ "${optspec:0:1}" = ":" ]; then
                 echo "Non-option argument: '-${OPTARG}'" >&2
+                print_help
             fi
             ;;
     esac
