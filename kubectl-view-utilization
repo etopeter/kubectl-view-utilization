@@ -22,9 +22,24 @@ VIEW_UTILIZATION_NAMESPACE=""
 VIEW_UTILIZATION_NODE_LABEL=""
 VIEW_UTILIZATION_OUTPUT="text"
 VIEW_UTILIZATION_SUBCOMMAND=""
+VIEW_UTILIZATION_UNITS="full"
 
 print_plugin_version() {
     echo "${PLUGIN_VERSION}"
+    exit
+}
+
+print_help() {
+    echo "usage: $0 [-v] [--namespace[=]<value>]" >&2
+    echo "" >&2
+    echo "-n[--namespace]     filter by namespace" >&2
+    echo "-l[--selector]      filter by node label" >&2
+    echo "-o[--output]        output [text/json] default text" >&2
+    echo "-h                  human readable" >&2
+    echo "-v                  prints version" >&2
+    echo "--help              prints help" >&2
+    echo "subcommands:" >&2
+    echo "    namespaces      shows namespace utilization" >&2
     exit
 }
 
@@ -137,10 +152,45 @@ cluster_utilization() {
     $2 in node && $6 ~ /[gG](i)?$/  { lim_mem+=$6*1073741824; next };
     $2 in node && $6 ~ /[tT](i)?$/  { lim_mem+=$6*1099511627776; next };
     END {
-        if ( output == "text" ) {
-            printf("%-8s  %4s  %4s  %4s  %4s  %5s  %4s\n", "Resource", "Req", "%Req", "Lim", "%Lim", "Alloc", "Free");
-            printf("%-8s  %4s  %3s%%  %4s  %3s%%  %5s  %4s\n", "CPU", cpu_pretty(req_cpu), calc_percentage(req_cpu, alloc_cpu), cpu_pretty(lim_cpu), calc_percentage(lim_cpu, alloc_cpu), cpu_pretty(alloc_cpu), cpu_pretty(calc_free(req_cpu, alloc_cpu)));
-            printf("%-8s  %4s  %3s%%  %4s  %3s%%  %5s  %4s\n", "Memory", mem_pretty(req_mem), calc_percentage(req_mem, alloc_mem), mem_pretty(lim_mem), calc_percentage(lim_mem, alloc_mem), mem_pretty(alloc_mem), mem_pretty(calc_free(req_mem, alloc_mem)));
+
+        if ( output == "text") {
+            req_cpu_text=prettify(req_cpu, cpu_pretty(req_cpu))
+            req_mem_text=prettify(req_mem, mem_pretty(req_mem))
+            req_header=prettify("Requests", "Req")
+            req_width=calc_max_width(req_header, req_cpu_text, req_mem_text)
+
+            percent_req_cpu_text=calc_percentage(req_cpu, alloc_cpu)
+            percent_req_mem_text=calc_percentage(req_mem, alloc_mem)
+            percent_req_header=prettify("%Requests", "%R")
+            percent_req_width=calc_max_width(percent_req_header, percent_req_cpu_text, percent_req_mem_text)
+
+            lim_cpu_text=prettify(lim_cpu, cpu_pretty(lim_cpu))
+            lim_mem_text=prettify(lim_mem, mem_pretty(lim-mem))
+            lim_header=prettify("Limits", "Lim")
+            lim_width=calc_max_width(lim_header, lim_cpu_text, lim_mem_text)
+
+            percent_lim_cpu_text=calc_percentage(lim_cpu, alloc_cpu)
+            percent_lim_mem_text=calc_percentage(lim_mem, alloc_mem)
+            percent_lim_header=prettify("%Limits", "%L")
+            percent_lim_width=calc_max_width(percent_lim_header, percent_lim_cpu_text, percent_lim_mem_text)
+
+            alloc_cpu_text=prettify(alloc_cpu, cpu_pretty(alloc_cpu))
+            alloc_mem_text=prettify(alloc_mem, mem_pretty(alloc_mem))
+            alloc_header=prettify("Allocatable", "Alloc")
+            alloc_width=calc_max_width(alloc_header, alloc_cpu_text, alloc_mem_text)
+
+            sched_cpu_text=prettify(calc_sched(req_cpu, alloc_cpu), cpu_pretty(calc_sched(req_cpu, alloc_cpu)))
+            sched_mem_text=prettify(calc_sched(req_mem, alloc_mem), mem_pretty(calc_sched(req_mem, alloc_mem)))
+            sched_header=prettify("Schedulable", "Sched")
+            sched_width=calc_max_width(sched_header, sched_cpu_text, sched_mem_text)
+
+            free_cpu_text=prettify(calc_free(req_cpu, lim_cpu, alloc_cpu), cpu_pretty(calc_free(req_cpu, lim_cpu, alloc_cpu)))
+            free_mem_text=prettify(calc_free(req_mem, lim_mem, alloc_mem), mem_pretty(calc_free(req_mem, lim_mem, alloc_mem)))
+            free_width=calc_max_width("Free", free_cpu_text, free_mem_text)
+
+            printf("%-8s  %"req_width"s  %"percent_req_width"s  %"lim_width"s  %"percent_lim_width"s  %"alloc_width"s  %"sched_width"s  %"free_width"s\n", "Resource", req_header, percent_req_header, lim_header, percent_lim_header, alloc_header, sched_header, "Free");
+            printf("%-8s  %"req_width"s  %"percent_req_width"s  %"lim_width"s  %"percent_lim_width"s  %"alloc_width"s  %"sched_width"s  %"free_width"s\n", "CPU", req_cpu_text, percent_req_cpu_text, lim_cpu_text, percent_lim_cpu_text, alloc_cpu_text, sched_cpu_text, free_cpu_text);
+            printf("%-8s  %"req_width"s  %"percent_req_width"s  %"lim_width"s  %"percent_lim_width"s  %"alloc_width"s  %"sched_width"s  %"free_width"s\n", "Memory", req_mem_text, percent_req_mem_text, lim_mem_text, percent_lim_mem_text, alloc_mem_text, sched_mem_text, free_mem_text);
         }
 
         if ( output == "json" ) {
@@ -162,7 +212,10 @@ cluster_utilization() {
         }
     }
     '
-    awk -v output="${VIEW_UTILIZATION_OUTPUT}" "${VIEW_UTILIZATION_AWK_FN}${awkcmd}" <(get_node_data) <(get_pod_data)
+    awk \
+        -v output="${VIEW_UTILIZATION_OUTPUT}" \
+        -v units="${VIEW_UTILIZATION_UNITS}" \
+        "${VIEW_UTILIZATION_AWK_FN}${awkcmd}" <(get_node_data) <(get_pod_data)
 }
 
 namespace_utilization() {
@@ -268,11 +321,28 @@ function a_join(ary, sep,   q, x, z){
    return z
 }
 
-function calc_free(requests, total) {
-    if ( total >= requests ) {
-        return (total - requests)
+function prettify(full, human) {
+    return ( units == "full" )? full : human;
+}
+
+function calc_max_width(a, b ,c) {
+    len1=(length(a)>length(b))? length(a) : length(b)
+    return (len1>length(c))? len1 : length(c) 
+}
+
+function calc_sched(requests, allocatable) {
+    if ( allocatable>= requests ) {
+        return (allocatable- requests)
     } else {
-        return "0"
+        return 0
+    }
+}
+function calc_free(requests, limits, allocatable) {
+    total_used=(limits > requests)? limits : requests
+    if ( allocatable > total_used ) {
+        return (allocatable - total_used)
+    } else {
+        return 0
     }
 }
 
@@ -330,6 +400,9 @@ while getopts "$optspec" optchar; do
     case "${optchar}" in
         -)
             case "${OPTARG}" in
+                help)
+                    print_help
+                    ;;
                 namespace)
                     val="${!OPTIND}"; OPTIND=$(( OPTIND + 1 ))
                     if [[ "${val}" != "" ]]; then
@@ -416,16 +489,7 @@ while getopts "$optspec" optchar; do
             ;;
 
         h)
-            echo "usage: $0 [-v] [--namespace[=]<value>]" >&2
-            echo "" >&2
-            echo "-n[--namespace]     filter by namespace" >&2
-            echo "-l[--selector]      filter by node label" >&2
-            echo "-o[--output]        output [text/json] default text" >&2
-            echo "-h                  prints help" >&2
-            echo "-v                  prints version" >&2
-            echo "subcommands:" >&2
-            echo "    namespaces      shows namespace utilization" >&2
-            exit
+            VIEW_UTILIZATION_UNITS="human"
             ;;
         v)
             print_plugin_version
