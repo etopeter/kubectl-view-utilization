@@ -38,6 +38,16 @@ Resource     Requests  %Requests        Limits  %Limits   Allocatable   Schedula
 CPU             43475         81         70731      132         53200          9725            0
 Memory    94371840000         42  147184418816       66  222828834816  128456994816  75644416000
 ```
+| Column      | Short | Description |
+|-------------|-------|-------------|
+| Requests    | Req   | Calculated total pod requests across all namespaces |
+| %Requests   | %R    | Percentage of total requests agains allocatable requests |
+| Limits      | Lim   | Calculated total pod limits across all namespaces  |
+| %Limits     | %L    | Percentage of tatal limits agains allocatable limits |
+| Allocatable | Alloc | Available allocatable resources |
+| Schedulable | Sched | Resources that can be used to schedule pods; Available for pod requests (allocatable - requests) |
+| Free        | Free  | Resources that are outside all requests or limits |
+
 Human readable format `-h`
 ```shell
 kubectl view-utilization -h
