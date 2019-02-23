@@ -41,7 +41,7 @@ load mocks/kubectl
 
     [ $status -eq 0 ]
     echo "${output}"
-    [[ "${lines[0]}" == '{"CPU": {"requested": 70,"limits": 340,"allocatable": 898,"utilization": 7},"Memory": {"requested": 381681664,"limits": 658608128,"allocatable": 2767106048,"utilization": 13}}' ]]
+    [[ "${lines[0]}" == '{"CPU": {"requested": 70,"limits": 340,"allocatable": 898,"schedulable": 828,"free": 558},"Memory": {"requested": 381681664,"limits": 658608128,"allocatable": 2767106048,"schedulable": 2385424384,"free": 2108497920}}' ]]
 }
 
 @test "[u4] cluster-small (gawk)> kubectl view-utilization masters" {
