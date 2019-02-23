@@ -85,3 +85,24 @@ prewiew           4       9G
 rc                4       9G
 qa                4       9G
 ```
+
+Output json
+```shell
+kubectl view-utilization -o json | jq
+{
+  "CPU": {
+    "requested": 43475,
+    "limits": 70731,
+    "allocatable": 53200,
+    "schedulable": 9725,
+    "free": 0
+  },
+  "Memory": {
+    "requested": 94371840000,
+    "limits": 147184418816,
+    "allocatable": 222828834816,
+    "schedulable": 128456994816,
+    "free": 75644416000
+  }
+}
+```
