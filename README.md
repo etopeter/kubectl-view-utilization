@@ -34,24 +34,34 @@ This plugin should be invoked with kubectl command, and will appear as subcomman
 
 ```shell
 kubectl view-utilization                          
-cores    2.3 / 8    (28%)
-memory  1.2G / 30G   (4%)
+Resource     Requests  %Requests        Limits  %Limits   Allocatable   Schedulable         Free
+CPU             43475         81         70731      132         53200          9725            0
+Memory    94371840000         42  147184418816       66  222828834816  128456994816  75644416000
 ```
-Check utilization for specific namespace:
+Human readable format `-h`
+```shell
+kubectl view-utilization -h
+Resource  Req   %R  Lim    %L  Alloc  Sched  Free
+CPU        43  81%   70  132%     53    9.7     0
+Memory    88G  42%    0   66%   208G   120G   70G
+```
+Check utilization for specific namespace `-n`
 
 ```shell
-kubectl view-utilization -n kube-system
-cores   0.5 / 20    (2%)
-memory   5G / 76G   (6%)
+kubectl view-utilization -h -n kube-system
+Resource   Req  %R  Lim  %L  Alloc  Sched  Free
+CPU        3.5  6%  4.2  7%     53     49    48
+Memory    5.1G  2%    0  3%   208G   202G  200G
 ```
 
 Check utilization for node groups using label filters.
-Example filter out master nodes `node-role.kubernetes.io/master=true`:
+Example filter results only for nodes in availability zone us-west-2b `failure-domain.beta.kubernetes.io/zone=us-west-2b`:
 
 ```shell
-kubectl view-utilization -l node-role.kubernetes.io/master=true
-cores   0.5 / 8     (2%)
-memory   1G / 24G   (4%)
+./kubectl-view-utilization -l failure-domain.beta.kubernetes.io/zone=us-west-2b -h
+Resource  Req   %R  Lim    %L  Alloc  Sched  Free
+CPU        19  84%   31  137%     22    3.6     0
+Memory    39G  43%    0   68%    89G    50G   28G
 ```
 
 Overview of namespace utilization `kubectl view-utilization namespaces`
