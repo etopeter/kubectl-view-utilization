@@ -76,14 +76,15 @@ Memory    39G  43%    0   68%    89G    50G   28G
 
 Overview of namespace utilization `kubectl view-utilization namespaces`
 ```shell
-kubectl view-utilization namespaces
-NAMESPACE       CPU   MEMORY
-dev               0        0
-kube-system       3       3G
-monitoring      0.3     1.5G
-prewiew           4       9G
-rc                4       9G
-qa                4       9G
+kubectl view-utilization namespaces -h
+             CPU        Memory      
+Namespace     Req  Lim   Req   Lim
+analitics     6.6   10   14G   21G
+kube-system   3.5  4.2  5.1G  7.6G
+lt             13   21   27G   42G
+monitoring   0.35  3.5  1.8G  3.5G
+qa             13   21   27G   42G
+rc            6.6   10   14G   21G
 ```
 
 Output json
