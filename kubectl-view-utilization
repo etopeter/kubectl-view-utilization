@@ -264,9 +264,36 @@ namespace_utilization() {
 
         if ( output == "text" ) {
 
-            printf("%-" longest_namespace_len "s%17s%15s%20s%18s\n", "NAMESPACE", "CPU Requests", "CPU Limits", "Memory Requests", "Memory Limits")
+            req_cpu_header=prettify("CPU Requests", "Req")
+            req_mem_header=prettify("Memory Requests", "Req")
+            lim_cpu_header=prettify("CPU Limits", "Lim")
+            lim_mem_header=prettify("Memory Limits", "Lim")
+
+            req_cpu_width=length(req_cpu_header)
+            req_mem_width=length(req_mem_header)
+            lim_cpu_width=length(lim_cpu_header)
+            lim_mem_width=length(lim_mem_header)
+
             for (z = 1; z in nsindex; z++) {
-                printf("%-" longest_namespace_len "s%17s%15s%20s%18s\n", nsindex[z], cpu_pretty(req_cpu[nsindex[z]]), cpu_pretty(lim_cpu[nsindex[z]]), mem_pretty(req_mem[nsindex[z]]), mem_pretty(lim_mem[nsindex[z]]))
+
+                req_cpu_text[z]=prettify(req_cpu[nsindex[z]], cpu_pretty(req_cpu[nsindex[z]]))
+                req_mem_text[z]=prettify(sprintf("%.0f",req_mem[nsindex[z]]), mem_pretty(req_mem[nsindex[z]]))
+                lim_cpu_text[z]=prettify(lim_cpu[nsindex[z]], cpu_pretty(lim_cpu[nsindex[z]]))
+                lim_mem_text[z]=prettify(sprintf("%.0f",lim_mem[nsindex[z]]), mem_pretty(lim_mem[nsindex[z]]))
+
+                req_cpu_width=(req_cpu_width < length(req_cpu_text[z]))? length(req_cpu_text[z]): req_cpu_width
+                req_mem_width=(req_mem_width < length(req_mem_text[z]))? length(req_mem_text[z]): req_mem_width
+                lim_cpu_width=(lim_cpu_width < length(lim_cpu_text[z]))? length(lim_cpu_text[z]): lim_cpu_width
+                lim_mem_width=(lim_mem_width < length(lim_mem_text[z]))? length(lim_mem_text[z]): lim_mem_width
+            }
+
+            if ( units == "human" ) {
+                printf("%-"longest_namespace_len"s  %-"req_cpu_width"s  %"lim_cpu_width"s  %-"req_mem_width"s  %"lim_mem_width"s\n", "", "CPU", "", "Memory", "")
+            }
+            printf("%-"longest_namespace_len"s  %"req_cpu_width"s  %"lim_cpu_width"s  %"req_mem_width"s  %"lim_mem_width"s\n", "Namespace", req_cpu_header, lim_cpu_header, req_mem_header, lim_mem_header)
+
+            for (z = 1; z in nsindex; z++) {
+                printf("%-"longest_namespace_len"s  %"req_cpu_width"s  %"lim_cpu_width"s  %"req_mem_width"s  %"lim_mem_width"s\n", nsindex[z], req_cpu_text[z], lim_cpu_text[z], req_mem_text[z], lim_mem_text[z])
             }
         }
 
@@ -290,7 +317,10 @@ namespace_utilization() {
         }
     }
     '
-    awk -v output="${VIEW_UTILIZATION_OUTPUT}" "${VIEW_UTILIZATION_AWK_FN}${awkcmd}" <(get_pod_data)
+    awk \
+        -v output="${VIEW_UTILIZATION_OUTPUT}" \
+        -v units="${VIEW_UTILIZATION_UNITS}" \
+        "${VIEW_UTILIZATION_AWK_FN}${awkcmd}" <(get_pod_data)
 }
 
 VIEW_UTILIZATION_AWK_FN='
