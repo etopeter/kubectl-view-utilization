@@ -1,7 +1,7 @@
 #!/usr/bin/env bats
 set -a
 
-@test "kubectl view utilization -v" {
+@test "[a1] kubectl view utilization -v" {
 
     run /code/kubectl-view-utilization -v
     [ $status -eq 0 ]
@@ -9,100 +9,125 @@ set -a
     [[ "$output" == v* ]]
 }
 
-@test "kubectl view utilization -h" {
+@test "[a2] kubectl view utilization --help" {
 
-    run /code/kubectl-view-utilization -h
+    run /code/kubectl-view-utilization --help
     [ $status -eq 0 ]
     echo "output = ${output}"
     [[ "${lines[1]}" == "-n[--namespace]     filter by namespace" ]]
-    [[ "${lines[4]}" == "-h                  prints help" ]]
+    [[ "${lines[4]}" == "-h                  human readable" ]]
+    [[ "${lines[6]}" == "--help              prints help" ]]
 }
 
-@test "kubectl view utilization --unknown" {
+@test "[a3] kubectl view utilization --unknown" {
 
     run /code/kubectl-view-utilization --unknown
     [ $status -eq 1 ]
     echo "output = ${output}"
-    [[ "${lines[0]}" == "Unknown option --unknown" ]]
+    [[ "${lines[0]}" == "Unknown option: --unknown" ]]
 }
 
-@test "kubectl view utilization -o unknown" {
+@test "[a4] kubectl view utilization -o unknown" {
 
     run /code/kubectl-view-utilization -o unknown
     [ $status -eq 1 ]
     echo "output = ${output}"
-    [[ "${lines[0]}" == "valid values are text, json" ]]
+    [[ "${lines[0]}" == "Output value is required. Valid values are: text, json." ]]
 }
 
-@test "kubectl view utilization --output unknown" {
+@test "[a5] kubectl view utilization --output unknown" {
 
     run /code/kubectl-view-utilization --output unknown
     [ $status -eq 1 ]
     echo "output = ${output}"
-    [[ "${lines[0]}" == "valid values are text, json" ]]
+    [[ "${lines[0]}" == "Output value is required. Valid values are: text, json." ]]
 }
 
-@test "kubectl view utilization --output=unknown" {
+@test "[a6] kubectl view utilization --output=unknown" {
 
     run /code/kubectl-view-utilization --output=unknown
     [ $status -eq 1 ]
     echo "output = ${output}"
-    [[ "${lines[0]}" == "valid values are text, json" ]]
+    [[ "${lines[0]}" == "Output value is required. Valid values are: text, json." ]]
 }
 
-@test "kubectl view utilization -l" {
+@test "[a7] kubectl view utilization -l" {
 
     run /code/kubectl-view-utilization -l
     [ $status -eq 1 ]
     echo "output = ${output}"
-    [[ "${lines[0]}" == "no label specified" ]]
+    [[ "${lines[0]}" == "Label selector value is required" ]]
 }
 
-@test "kubectl view utilization namespaces -o" {
+@test "[a8] kubectl view utilization --selector" {
+
+    run /code/kubectl-view-utilization --selector
+    [ $status -eq 1 ]
+    echo "output = ${output}"
+    [[ "${lines[0]}" == "Label selector value is required" ]]
+}
+
+@test "[a9] kubectl view utilization --selector=" {
+
+    run /code/kubectl-view-utilization --selector=
+    [ $status -eq 1 ]
+    echo "output = ${output}"
+    [[ "${lines[0]}" == "Label selector value is required" ]]
+}
+
+@test "[a10] kubectl view utilization namespaces -o" {
 
     run /code/kubectl-view-utilization namespaces -o
     [ $status -eq 1 ]
     echo "output = ${output}"
-    [[ "${lines[0]}" == "no output specified" ]]
+    [[ "${lines[0]}" == "Output value is required. Valid values are: text, json." ]]
 }
 
-@test "kubectl view utilization namespaces -o unknown" {
+@test "[a11] kubectl view utilization namespaces -o unknown" {
 
     run /code/kubectl-view-utilization namespaces -o unknown
     [ $status -eq 1 ]
     echo "output = ${output}"
-    [[ "${lines[0]}" == "valid values are text, json" ]]
+    [[ "${lines[0]}" == "Output value is required. Valid values are: text, json." ]]
 }
 
 
-@test "kubectl view utilization namespaces --output unknown" {
+@test "[a12] kubectl view utilization namespaces --output unknown" {
 
     run /code/kubectl-view-utilization namespaces --output unknown
     [ $status -eq 1 ]
     echo "output = ${output}"
-    [[ "${lines[0]}" == "valid values are text, json" ]]
+    [[ "${lines[0]}" == "Output value is required. Valid values are: text, json." ]]
 }
 
-@test "kubectl view utilization -n" {
+@test "[a13] kubectl view utilization namespaces --output=" {
+
+    run /code/kubectl-view-utilization namespaces --output=
+    [ $status -eq 1 ]
+    echo "output = ${output}"
+    [[ "${lines[0]}" == "Output value is required. Valid values are: text, json." ]]
+}
+
+@test "[a14] kubectl view utilization -n" {
 
     run /code/kubectl-view-utilization -n
     [ $status -eq 1 ]
     echo "output = ${output}"
-    [[ "${lines[0]}" == "no namespace specified" ]]
+    [[ "${lines[0]}" == "Namespace name is required" ]]
 }
 
-@test "kubectl view utilization --namespace" {
+@test "[a15] kubectl view utilization --namespace" {
 
     run /code/kubectl-view-utilization --namespace
     [ $status -eq 1 ]
     echo "output = ${output}"
-    [[ "${lines[0]}" == "no namespace specified" ]]
+    [[ "${lines[0]}" == "Namespace name is required" ]]
 }
 
-@test "kubectl view utilization --namespace=" {
+@test "[a16] kubectl view utilization --namespace=" {
 
     run /code/kubectl-view-utilization --namespace=
     [ $status -eq 1 ]
     echo "output = ${output}"
-    [[ "${lines[0]}" == "no namespace specified" ]]
+    [[ "${lines[0]}" == "Namespace name is required" ]]
 }
