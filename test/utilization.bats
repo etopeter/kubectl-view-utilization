@@ -29,7 +29,7 @@ load mocks/kubectl
     echo "${output}"
     [[ "${lines[0]}" == "Resource   Req   %R   Lim   %L  Alloc  Sched  Free" ]]
     [[ "${lines[1]}" == "CPU       0.07   7%  0.34  37%    0.9   0.83  0.56" ]]
-    [[ "${lines[2]}" == "Memory    364M  13%     0  23%   2.6G   2.2G    2G" ]]
+    [[ "${lines[2]}" == "Memory    364M  13%  628M  23%   2.6G   2.2G    2G" ]]
 }
 
 @test "[u3] cluster-small (gawk)> kubectl view utilization -o json" {
@@ -67,9 +67,9 @@ load mocks/kubectl
 
     [ $status -eq 0 ]
     echo "${output}"
-    [[ "${lines[0]}" == "Resource   Req   %R  Lim   %L  Alloc  Sched  Free" ]]
-    [[ "${lines[1]}" == "CPU       0.06  13%  0.2  44%   0.45   0.39  0.25" ]]
-    [[ "${lines[2]}" == "Memory    300M  22%    0  37%   1.3G  1019M  819M" ]]
+    [[ "${lines[0]}" == "Resource   Req   %R   Lim   %L  Alloc  Sched  Free" ]]
+    [[ "${lines[1]}" == "CPU       0.06  13%   0.2  44%   0.45   0.39  0.25" ]]
+    [[ "${lines[2]}" == "Memory    300M  22%  500M  37%   1.3G  1019M  819M" ]]
 }
 
 @test "[u6] cluster-medium (gawk)> kubectl view utilization --output=text" {

@@ -164,7 +164,7 @@ cluster_utilization() {
         percent_req_width=calc_max_width(percent_req_header, percent_req_cpu_text, percent_req_mem_text)
 
         lim_cpu_text=prettify(lim_cpu, cpu_pretty(lim_cpu))
-        lim_mem_text=prettify(lim_mem, mem_pretty(lim-mem))
+        lim_mem_text=prettify(lim_mem, mem_pretty(lim_mem))
         lim_header=prettify("Limits", "Lim")
         lim_width=calc_max_width(lim_header, lim_cpu_text, lim_mem_text)
 
