@@ -12,14 +12,16 @@ without having to setting up more complicated metrics dashboards, especially whe
 3. Start using by running `kubectl view-utilization`.
 
 ### Update with krew
-Krew makes update process very simple. To update to latest version run `kubectl krew upgrade view-utilization`
-
+Krew makes update process very simple. To update to latest version run
+```shell
+kubectl krew upgrade view-utilization
+```
 
 ### Install with Curl
 For Kubernetes 1.12 or newer:
 ```shell
 mkdir -p ~/.kube/plugins/view-utilization && \
-curl -sL https://github.com/etopeter/kubectl-view-utilization/releases/download/v0.2.0/kubectl-view-utilization-v0.2.0.tar.gz | tar xzvf - -C ~/.kube/plugins/view-utilization
+curl -sL https://github.com/etopeter/kubectl-view-utilization/releases/download/v0.2.1/kubectl-view-utilization-v0.2.1.tar.gz | tar xzvf - -C ~/.kube/plugins/view-utilization
 export PATH=$PATH:~/.kube/plugins/view-utilization/
 ```
 
@@ -38,6 +40,7 @@ Resource     Requests  %Requests        Limits  %Limits   Allocatable   Schedula
 CPU             43475         81         70731      132         53200          9725            0
 Memory    94371840000         42  147184418816       66  222828834816  128456994816  75644416000
 ```
+
 | Column      | Short | Description |
 |-------------|-------|-------------|
 | Requests    | Req   | Calculated total pod requests across all namespaces |
@@ -48,30 +51,31 @@ Memory    94371840000         42  147184418816       66  222828834816  128456994
 | Schedulable | Sched | Resources that can be used to schedule pods; Available for pod requests (allocatable - requests) |
 | Free        | Free  | Resources that are outside all requests or limits |
 
+
 Human readable format `-h`
 ```shell
 kubectl view-utilization -h
-Resource  Req   %R  Lim    %L  Alloc  Sched  Free
-CPU        43  81%   70  132%     53    9.7     0
-Memory    88G  42%    0   66%   208G   120G   70G
+Resource  Req   %R   Lim    %L  Alloc  Sched  Free
+CPU        43  71%    71  117%     60     17     0
+Memory    88G  37%  138G   58%   237G   149G   99G
 ```
 Check utilization for specific namespace `-n`
 
 ```shell
 kubectl view-utilization -h -n kube-system
-Resource   Req  %R  Lim  %L  Alloc  Sched  Free
-CPU        3.5  6%  4.2  7%     53     49    48
-Memory    5.1G  2%    0  3%   208G   202G  200G
+Resource   Req  %R   Lim  %L  Alloc  Sched  Free
+CPU        3.7  6%   4.3  7%     60     57    56
+Memory    5.4G  2%  7.9G  3%   237G   232G  229G 
 ```
 
 Check utilization for node groups using label filters.
 Example filter results only for nodes in availability zone us-west-2b `failure-domain.beta.kubernetes.io/zone=us-west-2b`:
 
 ```shell
-./kubectl-view-utilization -l failure-domain.beta.kubernetes.io/zone=us-west-2b -h
+kubectl view-utilization -l failure-domain.beta.kubernetes.io/zone=us-west-2b -h
 Resource  Req   %R  Lim    %L  Alloc  Sched  Free
-CPU        19  84%   31  137%     22    3.6     0
-Memory    39G  43%    0   68%    89G    50G   28G
+CPU        14  64%   24  106%     22      8     0
+Memory    30G  33%  47G   52%    89G    59G   42G
 ```
 
 Overview of namespace utilization `kubectl view-utilization namespaces`
@@ -92,18 +96,18 @@ Output json
 kubectl view-utilization -o json | jq
 {
   "CPU": {
-    "requested": 43475,
-    "limits": 70731,
-    "allocatable": 53200,
-    "schedulable": 9725,
+    "requested": 43740,
+    "limits": 71281,
+    "allocatable": 60800,
+    "schedulable": 17060,
     "free": 0
   },
   "Memory": {
-    "requested": 94371840000,
-    "limits": 147184418816,
-    "allocatable": 222828834816,
-    "schedulable": 128456994816,
-    "free": 75644416000
+    "requested": 94942265344,
+    "limits": 148056834048,
+    "allocatable": 254661525504,
+    "schedulable": 159719260160,
+    "free": 106604691456
   }
 }
 ```
