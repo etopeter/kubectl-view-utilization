@@ -116,7 +116,7 @@ get_node_data() {
     fi
 
     # shellcheck disable=SC2086
-    kubectl get nodes $node_label -o=jsonpath="{range .items[*]}{.metadata.name}{'\t'}{.status.allocatable.cpu}{'\t'}{.status.allocatable.memory}{'\n'}{end}"
+    kubectl get nodes $node_label --field-selector=spec.unschedulable=false  -o=jsonpath="{range .items[*]}{.metadata.name}{'\t'}{.status.allocatable.cpu}{'\t'}{.status.allocatable.memory}{'\n'}{end}"
 }
 
 
