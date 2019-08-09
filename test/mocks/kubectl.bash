@@ -12,12 +12,12 @@ kubectl() {
     fi
 
     # get all nodes requests
-    if [ "${1}" == "get" ] && [ "${2}" == "nodes" ] && [ "${3}" == "-o=jsonpath={range .items[*]}{.metadata.name}{'\t'}{.status.allocatable.cpu}{'\t'}{.status.allocatable.memory}{'\n'}{end}" ]; then
+    if [ "${1}" == "get" ] && [ "${2}" == "nodes" ] && [ "${3}" == "--field-selector=spec.unschedulable=false" ] && [ "${4}" == "-o=jsonpath={range .items[*]}{.metadata.name}{'\t'}{.status.allocatable.cpu}{'\t'}{.status.allocatable.memory}{'\n'}{end}" ]; then
         kubectl_get_all_nodes_requests
     fi
 
     # get master nodes requests
-    if [ "${1}" == "get" ] && [ "${2}" == "nodes" ] && [ "${3}" == "-l" ] && [ "${4}" == "node-role.kubernetes.io/master=true" ] && [ "${5}" == "-o=jsonpath={range .items[*]}{.metadata.name}{'\t'}{.status.allocatable.cpu}{'\t'}{.status.allocatable.memory}{'\n'}{end}" ]; then
+    if [ "${1}" == "get" ] && [ "${2}" == "nodes" ] && [ "${3}" == "-l" ] && [ "${4}" == "node-role.kubernetes.io/master=true" ] && [ "${5}" == "--field-selector=spec.unschedulable=false" ] && [ "${6}" == "-o=jsonpath={range .items[*]}{.metadata.name}{'\t'}{.status.allocatable.cpu}{'\t'}{.status.allocatable.memory}{'\n'}{end}" ]; then
         kubectl_get_master_nodes_requests
     fi
 
