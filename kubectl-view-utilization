@@ -23,6 +23,7 @@ VIEW_UTILIZATION_NODE_LABEL=""
 VIEW_UTILIZATION_OUTPUT="text"
 VIEW_UTILIZATION_SUBCOMMAND=""
 VIEW_UTILIZATION_UNITS="full"
+VIEW_UTILIZATION_CONTEXT=""
 
 print_plugin_version() {
     echo "${PLUGIN_VERSION}"
@@ -32,12 +33,13 @@ print_plugin_version() {
 print_help() {
     echo "usage: $0 [-v] [--namespace[=]<value>]" >&2
     echo "" >&2
-    echo "-n[--namespace]     filter by namespace" >&2
-    echo "-l[--selector]      filter by node label" >&2
-    echo "-o[--output]        output [text/json] default text" >&2
-    echo "-h                  human readable" >&2
-    echo "-v                  prints version" >&2
-    echo "--help              prints help" >&2
+    echo "-n[--namespace]     Filter by namespace" >&2
+    echo "-l[--selector]      Filter by node label" >&2
+    echo "-o[--output]        Output [text/json] default text" >&2
+    echo "-h                  Human readable" >&2
+    echo "--context           The name of the kubeconfig context to use" >&2
+    echo "-v                  Prints version" >&2
+    echo "--help              Prints help" >&2
     echo "subcommands:" >&2
     echo "    namespaces      shows namespace utilization" >&2
     exit
@@ -47,6 +49,7 @@ get_pod_data() {
 
     local template
     local namespace
+    local context
 
     read -r -d '' template <<'EOF'
     {{/* get_pod_data */}}
@@ -105,18 +108,32 @@ EOF
         namespace="--all-namespaces"
     fi
 
-    kubectl get pod $namespace --field-selector=status.phase=Running -o=go-template --template="${template//[$' \t\r\n']}"
+    if [ "${VIEW_UTILIZATION_CONTEXT}" != "" ]; then
+        context="--context=${VIEW_UTILIZATION_CONTEXT}"
+    else
+        context=""
+    fi
+
+
+    kubectl $context get pod $namespace --field-selector=status.phase=Running -o=go-template --template="${template//[$' \t\r\n']}"
 }
 
 get_node_data() {
     local node_label
+    local context
 
     if [ "${VIEW_UTILIZATION_NODE_LABEL}" != "" ]; then
         node_label="-l ${VIEW_UTILIZATION_NODE_LABEL}"
     fi
+    if [ "${VIEW_UTILIZATION_CONTEXT}" != "" ]; then
+        context="--context=${VIEW_UTILIZATION_CONTEXT}"
+    else
+        context=""
+    fi
+
 
     # shellcheck disable=SC2086
-    kubectl get nodes $node_label --field-selector=spec.unschedulable=false -o=jsonpath="{range .items[*]}{.metadata.name}{'\t'}{.status.allocatable.cpu}{'\t'}{.status.allocatable.memory}{'\n'}{end}"
+    kubectl $context get nodes $node_label --field-selector=spec.unschedulable=false -o=jsonpath="{range .items[*]}{.metadata.name}{'\t'}{.status.allocatable.cpu}{'\t'}{.status.allocatable.memory}{'\n'}{end}"
 }
 
 
@@ -448,6 +465,21 @@ while [ "$#" -gt 0 ]; do
                 exit 1
             fi
             shift 2
+            ;;
+        --context)
+            if [[ $1 -lt 2 ]]; then
+                echo "The name of kubeconfig context name is required"
+                exit 1
+            fi
+            VIEW_UTILIZATION_CONTEXT="${2}";
+            ;;
+        --context=*)
+            if [ "${1#*=}" == "" ]; then
+                echo "The name of kubeconfig context name is required"
+                exit 1
+            fi
+            VIEW_UTILIZATION_CONTEXT="${1#*=}";
+            shift 1
             ;;
         -h)
             VIEW_UTILIZATION_UNITS="human";
