@@ -14,9 +14,9 @@ set -a
     run /code/kubectl-view-utilization --help
     [ $status -eq 0 ]
     echo "output = ${output}"
-    [[ "${lines[1]}" == "-n[--namespace]     filter by namespace" ]]
-    [[ "${lines[4]}" == "-h                  human readable" ]]
-    [[ "${lines[6]}" == "--help              prints help" ]]
+    [[ "${lines[1]}" == "-n[--namespace]     Filter by namespace" ]]
+    [[ "${lines[4]}" == "-h                  Human readable" ]]
+    [[ "${lines[7]}" == "--help              Prints help" ]]
 }
 
 @test "[a3] kubectl view utilization --unknown" {
