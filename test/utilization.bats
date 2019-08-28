@@ -32,7 +32,7 @@ load mocks/kubectl
     [[ "${lines[2]}" == "Memory    364M  13%  628M  23%   2.6G   2.2G    2G" ]]
 }
 
-@test "[u3] cluster-small (gawk)> kubectl view utilization -o json" {
+@test "[u3] cluster-small (gawk)> kubectl view utilization output to json" {
 
     use_awk gawk 
     switch_context cluster-small
@@ -325,3 +325,48 @@ load mocks/kubectl
     [[ "${lines[1]}" == "CPU                0          0       0        0         6006         6006       6006" ]]
     [[ "${lines[2]}" == "Memory    3606605824         86       0        0   4150659072    544053248  544053248" ]]
 }
+
+@test "[u24] cluster-small (gawk)> kubectl view utilization context cluster-small" {
+
+    use_awk gawk 
+    switch_context cluster-big
+
+    run /code/kubectl-view-utilization -o text --context=cluster-small
+
+    [ $status -eq 0 ]
+    echo "${output}"
+    [[ "${lines[0]}" == "Resource   Requests  %Requests     Limits  %Limits  Allocatable  Schedulable        Free" ]]
+    [[ "${lines[1]}" == "CPU              70          7        340       37          898          828         558" ]]
+    [[ "${lines[2]}" == "Memory    381681664         13  658608128       23   2767106048   2385424384  2108497920" ]]
+}
+
+@test "[u25] cluster-medium (gawk)> kubectl view utilization context cluster-medium" {
+
+    use_awk gawk
+    switch_context cluster-small
+
+    run /code/kubectl-view-utilization -o text --context cluster-medium
+
+    [ $status -eq 0 ]
+    echo "${output}"
+    [[ "${lines[0]}" == "Resource     Requests  %Requests  Limits  %Limits   Allocatable   Schedulable          Free" ]]
+    [[ "${lines[1]}" == "CPU             20820         69       0        0         29908          9088          9088" ]]
+    [[ "${lines[2]}" == "Memory    13608419328         11       0        0  119148531712  105540112384  105540112384" ]]
+}
+
+
+@test "[u26] cluster-big (original-awk)> kubectl view utilization context cluster-big" {
+
+    use_awk original-awk
+    switch_context cluster-small
+
+    run /code/kubectl-view-utilization -o text --context=cluster-big
+
+    [ $status -eq 0 ]
+    echo "${output}"
+    [[ "${lines[0]}" == "Resource      Requests  %Requests  Limits  %Limits    Allocatable    Schedulable           Free" ]]
+    [[ "${lines[1]}" == "CPU              98878         18       0        0         538416         439538         439538" ]]
+    [[ "${lines[2]}" == "Memory    154268598272          8       0        0  1790902091776  1636633493504  1636633493504" ]]
+}
+
+

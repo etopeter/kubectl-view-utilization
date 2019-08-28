@@ -2,6 +2,7 @@
 
 kubectl() {
     local clusters=(cluster-small cluster-medium cluster-big cluster-bug1)
+
     if [ "${1}" == "config" ] && [ "${2}" == "use-context" ] && [[ "${clusters[*]}" =~ $3 ]]; then
         KUBECTL_CONTEXT="${3}"
         echo "setting context to ${3}"
@@ -10,6 +11,13 @@ kubectl() {
     if [ "${1}" == "config" ] && [ "${2}" == "current-context" ]; then
         echo "${KUBECTL_CONTEXT}"
     fi
+
+
+    if [[ "${1}" == *"--context="* ]] && [ -n "${1#*=}" ]; then
+        KUBECTL_CONTEXT="${1#*=}"
+        shift 1
+    fi
+
 
     # get all nodes requests
     if [ "${1}" == "get" ] && [ "${2}" == "nodes" ] && [ "${3}" == "--field-selector=spec.unschedulable=false" ] && [ "${4}" == "-o=jsonpath={range .items[*]}{.metadata.name}{'\t'}{.status.allocatable.cpu}{'\t'}{.status.allocatable.memory}{'\n'}{end}" ]; then

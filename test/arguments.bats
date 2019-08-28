@@ -131,3 +131,21 @@ set -a
     echo "output = ${output}"
     [[ "${lines[0]}" == "Namespace name is required" ]]
 }
+
+@test "[a17] kubectl view utilization --context" {
+
+    run /code/kubectl-view-utilization --context
+
+    [ $status -eq 1 ]
+    echo "output = ${output}"
+    [[ "${lines[0]}" == "The name of kubeconfig context name is required" ]]
+}
+
+@test "[a18] kubectl view utilization --context=" {
+
+    run /code/kubectl-view-utilization --context=
+
+    [ $status -eq 1 ]
+    echo "output = ${output}"
+    [[ "${lines[0]}" == "The name of kubeconfig context name is required" ]]
+}
