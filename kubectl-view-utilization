@@ -467,11 +467,12 @@ while [ "$#" -gt 0 ]; do
             shift 2
             ;;
         --context)
-            if [[ $1 -lt 2 ]]; then
+            if [[ $# -lt 2 ]]; then
                 echo "The name of kubeconfig context name is required"
                 exit 1
             fi
             VIEW_UTILIZATION_CONTEXT="${2}";
+            shift 2
             ;;
         --context=*)
             if [ "${1#*=}" == "" ]; then
