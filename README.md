@@ -1,18 +1,20 @@
-# kubectl-view-utilization [![Build Status](https://travis-ci.org/etopeter/kubectl-view-utilization.svg?branch=master)](https://travis-ci.org/etopeter/kubectl-view-utilization)
+# `view-utilization` kubectl plugin to view cluster utilization [![Build Status](https://travis-ci.org/etopeter/kubectl-view-utilization.svg?branch=master)](https://travis-ci.org/etopeter/kubectl-view-utilization) [![license](https://img.shields.io/github/license/etopeter/kubectl-view-utilization.svg)](https://github.com/etopeter/kubectl-view-utilization/blob/master/LICENSE) [![contributions welcome](https://img.shields.io/badge/contributions-welcome-brightgreen.svg?style=flat)](https://github.com/etopeter/kubectl-view-utilization/issues)
 
-This repository implements kubectl plugin for showing cluster resource utilization. 
-This is can be used to estimate cluster capacity and see at a glance overprovisioned resoures.
-It's useful to have such tool if you need to know if you have enough overhead to handle pod autoscaling
-without having to setting up more complicated metrics dashboards, especially when you have many smaller clusters.
+# <img src="static/view-utilization.png" alt="view-utilization" width=96> view-utilization
+Kubectl plugin that shows cluster resource utilization. It is written in BASH/awk and uses kubectl tool to gather information.
+You can use it to estimate cluster capacity and see at a glance overprovisioned resoures with this simple command **`kubectl view-utilization`**.
 
 ## Installation
+
 ### Install with krew
 1. [Install krew](https://github.com/GoogleContainerTools/krew) plugin manager for kubectl.
 2. Run `kubectl krew install view-utilization`.
 3. Start using by running `kubectl view-utilization`.
 
 ### Update with krew
+
 Krew makes update process very simple. To update to latest version run
+
 ```shell
 kubectl krew upgrade view-utilization
 ```
@@ -20,9 +22,21 @@ kubectl krew upgrade view-utilization
 ### Install with Curl
 For Kubernetes 1.12 or newer:
 ```shell
-mkdir -p ~/.kube/plugins/view-utilization && \
-curl -sL https://github.com/etopeter/kubectl-view-utilization/releases/download/v0.2.1/kubectl-view-utilization-v0.2.1.tar.gz | tar xzvf - -C ~/.kube/plugins/view-utilization
-export PATH=$PATH:~/.kube/plugins/view-utilization/
+# Get latest tag
+VIEW_UTILIZATION_PATH=/usr/local/bin
+VIEW_UTILIZATION_TAG=$(curl -s https://api.github.com/repos/etopeter/kubectl-view-utilization/releases/latest | grep  "tag_name"| sed -E 's/.*"([^"]+)".*/\1/')
+
+# Download and unpack plugin
+curl -sL "https://github.com/etopeter/kubectl-view-utilization/releases/download/${VIEW_UTILIZATION_TAG}/kubectl-view-utilization-${VIEW_UTILIZATION_TAG}.tar.gz" |tar xzvf - -C $VIEW_UTILIZATION_PATH
+
+# Rename file if you want to use kubectl view-utilization or leave it if you want to invoke it with kubectl view utilization (with space between). Underscore between words allows kubernetes plugin to have hyphen between words.
+mv $VIEW_UTILIZATION_PATH/kubectl-view-utilization $VIEW_UTILIZATION_PATH/kubectl-view_utilization
+
+# Change permission to allow execution
+chmod +x $VIEW_UTILIZATION_PATH/kubectl-view_utilization
+
+# Check if plugin is detected
+kubectl view plugins
 ```
 
 ### Dependincies
@@ -52,6 +66,8 @@ Memory    94371840000         42  147184418816       66  222828834816  128456994
 | Free        | Free  | Resources that are outside all requests or limits |
 
 
+Example usage:
+
 Human readable format `-h`
 ```shell
 kubectl view-utilization -h
@@ -65,7 +81,7 @@ Check utilization for specific namespace `-n`
 kubectl view-utilization -h -n kube-system
 Resource   Req  %R   Lim  %L  Alloc  Sched  Free
 CPU        3.7  6%   4.3  7%     60     57    56
-Memory    5.4G  2%  7.9G  3%   237G   232G  229G 
+Memory    5.4G  2%  7.9G  3%   237G   232G  229G
 ```
 
 Check utilization for node groups using label filters.
@@ -111,3 +127,23 @@ kubectl view-utilization -o json | jq
   }
 }
 ```
+
+## Simplify workflow with aliases
+
+Add to your ~/.bash_profile or ~/.zshrc
+
+```shell
+alias kvu="kubectl view-utilization -h"
+```
+
+Now you can use alias to quickly show resource usage
+
+```shell
+kvu
+kvu namespaces
+```
+## Developing
+
+1. Clone this repo with git
+2. Test locally with kubectl pointing to your cluster (minikube or full cluster)
+3. Run unit tests `make test`
