@@ -1,6 +1,8 @@
-# `view-utilization` kubectl plugin to view cluster utilization [![Build Status](https://travis-ci.org/etopeter/kubectl-view-utilization.svg?branch=master)](https://travis-ci.org/etopeter/kubectl-view-utilization) [![license](https://img.shields.io/github/license/etopeter/kubectl-view-utilization.svg)](https://github.com/etopeter/kubectl-view-utilization/blob/master/LICENSE) [![contributions welcome](https://img.shields.io/badge/contributions-welcome-brightgreen.svg?style=flat)](https://github.com/etopeter/kubectl-view-utilization/issues)
+# `view-utilization` - kubectl plugin to view utilization
+---
+[![Build Status](https://travis-ci.org/etopeter/kubectl-view-utilization.svg?branch=master)](https://travis-ci.org/etopeter/kubectl-view-utilization) [![license](https://img.shields.io/github/license/etopeter/kubectl-view-utilization.svg)](https://github.com/etopeter/kubectl-view-utilization/blob/master/LICENSE) [![contributions welcome](https://img.shields.io/badge/contributions-welcome-brightgreen.svg?style=flat)](https://github.com/etopeter/kubectl-view-utilization/issues)
 
-# <img src="static/view-utilization.png" alt="view-utilization" width=96> view-utilization
+# <img src="static/view-utilization.png" alt="view-utilization" width=96>view-utilization
 Kubectl plugin that shows cluster resource utilization. It is written in BASH/awk and uses kubectl tool to gather information.
 You can use it to estimate cluster capacity and see at a glance overprovisioned resoures with this simple command **`kubectl view-utilization`**.
 
@@ -36,17 +38,18 @@ mv $VIEW_UTILIZATION_PATH/kubectl-view-utilization $VIEW_UTILIZATION_PATH/kubect
 chmod +x $VIEW_UTILIZATION_PATH/kubectl-view_utilization
 
 # Check if plugin is detected
-kubectl view plugins
+kubectl plugin list
 ```
 
-### Dependincies
+### Dependencies
+While we try to be as minimalistic as possible the only dependency is AWK.
 
+- kubectl
 - bash
-- awk (gawk,mawk,awk)
-
+- awk (gawk, mawk, awk)
 
 ## Usage
-This plugin should be invoked with kubectl command, and will appear as subcommand. It will use the existing context configured in `$KUBECONFIG` file.
+This plugin should be invoked with kubectl command, and will appear as subcommand. It will use the existing context configured in `$KUBECONFIG` file. You can override context with `--context` parameter.
 
 ```shell
 kubectl view-utilization                          
@@ -130,18 +133,29 @@ kubectl view-utilization -o json | jq
 
 ## Simplify workflow with aliases
 
-Add to your ~/.bash_profile or ~/.zshrc
+Add to your `~/.bash_profile` or `~/.zshrc`
 
 ```shell
 alias kvu="kubectl view-utilization -h"
 ```
 
-Now you can use alias to quickly show resource usage
+Now you can use `kvu` alias to quickly show resource usage
 
+Example commands:
 ```shell
 kvu
 kvu namespaces
+kvu -n kube-system
 ```
+
+---
+
+## Change log
+
+See the [CHANGELOG](CHANGELOG.md) file for details.
+
+---
+
 ## Developing
 
 1. Clone this repo with git
