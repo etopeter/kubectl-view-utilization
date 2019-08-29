@@ -2,24 +2,19 @@
 ---
 [![Build Status](https://travis-ci.org/etopeter/kubectl-view-utilization.svg?branch=master)](https://travis-ci.org/etopeter/kubectl-view-utilization) [![license](https://img.shields.io/github/license/etopeter/kubectl-view-utilization.svg)](https://github.com/etopeter/kubectl-view-utilization/blob/master/LICENSE) [![contributions welcome](https://img.shields.io/badge/contributions-welcome-brightgreen.svg?style=flat)](https://github.com/etopeter/kubectl-view-utilization/issues)
 
-# <img src="static/view-utilization.png" alt="view-utilization" width=96>view-utilization
+# <img src="static/view-utilization.png" alt="view-utilization" width=48>view-utilization
 Kubectl plugin that shows cluster resource utilization. It is written in BASH/awk and uses kubectl tool to gather information.
 You can use it to estimate cluster capacity and see at a glance overprovisioned resoures with this simple command **`kubectl view-utilization`**.
 
 ## Installation
 
-### Install with krew
+### Install with krew (Recommended)
 1. [Install krew](https://github.com/GoogleContainerTools/krew) plugin manager for kubectl.
 2. Run `kubectl krew install view-utilization`.
-3. Start using by running `kubectl view-utilization`.
 
-### Update with krew
+#### Update with krew
 
-Krew makes update process very simple. To update to latest version run
-
-```shell
-kubectl krew upgrade view-utilization
-```
+Krew makes update process very simple. To update to latest version run `kubectl krew upgrade view-utilization`
 
 ### Install with Curl
 For Kubernetes 1.12 or newer:
@@ -110,7 +105,7 @@ qa             13   21   27G   42G
 rc            6.6   10   14G   21G
 ```
 
-Output json
+Output to JSON format.
 ```shell
 kubectl view-utilization -o json | jq
 {
@@ -130,6 +125,8 @@ kubectl view-utilization -o json | jq
   }
 }
 ```
+
+---
 
 ## Simplify workflow with aliases
 
@@ -154,7 +151,6 @@ kvu -n kube-system
 
 See the [CHANGELOG](CHANGELOG.md) file for details.
 
----
 
 ## Developing
 
