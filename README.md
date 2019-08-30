@@ -1,23 +1,42 @@
 # `view-utilization` - kubectl plugin to view utilization
----
-[![Build Status](https://travis-ci.org/etopeter/kubectl-view-utilization.svg?branch=master)](https://travis-ci.org/etopeter/kubectl-view-utilization) [![license](https://img.shields.io/github/license/etopeter/kubectl-view-utilization.svg)](https://github.com/etopeter/kubectl-view-utilization/blob/master/LICENSE) [![contributions welcome](https://img.shields.io/badge/contributions-welcome-brightgreen.svg?style=flat)](https://github.com/etopeter/kubectl-view-utilization/issues)
 
-# <img src="static/view-utilization.png" alt="view-utilization" width=48>view-utilization
-Kubectl plugin that shows cluster resource utilization. It is written in BASH/awk and uses kubectl tool to gather information.
-You can use it to estimate cluster capacity and see at a glance overprovisioned resoures with this simple command **`kubectl view-utilization`**.
+---
+[![Build Status](https://travis-ci.org/etopeter/kubectl-view-utilization.svg?branch=master)](
+https://travis-ci.org/etopeter/kubectl-view-utilization) [![Test Coverage](
+https://api.codeclimate.com/v1/badges/88ad27e772eac5a4e19d/test_coverage)](
+https://codeclimate.com/github/etopeter/kubectl-view-utilization/test_coverage) [![license](
+https://img.shields.io/github/license/etopeter/kubectl-view-utilization.svg)](
+https://github.com/etopeter/kubectl-view-utilization/blob/master/LICENSE
+) [![contributions welcome](
+https://img.shields.io/badge/contributions-welcome-brightgreen.svg?style=flat)](
+https://github.com/etopeter/kubectl-view-utilization/issues)
+
+<p align="center">
+<img src="static/view-utilization.png" alt="view-utilization" width=96>
+</p>
+
+`view-utilization` kubectl plugin that shows cluster resource utilization. It is written in
+BASH/awk and uses kubectl tool to gather information. You can use it to
+estimate cluster capacity and see at a glance overprovisioned resoures
+with this simple command **`kubectl view-utilization`**.
 
 ## Installation
 
 ### Install with krew (Recommended)
-1. [Install krew](https://github.com/GoogleContainerTools/krew) plugin manager for kubectl.
-2. Run `kubectl krew install view-utilization`.
+
+1. [Install krew](https://github.com/GoogleContainerTools/krew)
+   plugin manager for kubectl.
+1. Run `kubectl krew install view-utilization`.
 
 #### Update with krew
 
-Krew makes update process very simple. To update to latest version run `kubectl krew upgrade view-utilization`
+Krew makes update process very simple. To update to latest version run
+`kubectl krew upgrade view-utilization`
 
 ### Install with Curl
+
 For Kubernetes 1.12 or newer:
+
 ```shell
 # Get latest tag
 VIEW_UTILIZATION_PATH=/usr/local/bin
@@ -37,6 +56,7 @@ kubectl plugin list
 ```
 
 ### Dependencies
+
 While we try to be as minimalistic as possible the only dependency is AWK.
 
 - kubectl
@@ -44,10 +64,13 @@ While we try to be as minimalistic as possible the only dependency is AWK.
 - awk (gawk, mawk, awk)
 
 ## Usage
-This plugin should be invoked with kubectl command, and will appear as subcommand. It will use the existing context configured in `$KUBECONFIG` file. You can override context with `--context` parameter.
+
+This plugin should be invoked with kubectl command, and will appear as
+subcommand. It will use the existing context configured in `$KUBECONFIG` file.
+You can override context with `--context` parameter.
 
 ```shell
-kubectl view-utilization                          
+kubectl view-utilization
 Resource     Requests  %Requests        Limits  %Limits   Allocatable   Schedulable         Free
 CPU             43475         81         70731      132         53200          9725            0
 Memory    94371840000         42  147184418816       66  222828834816  128456994816  75644416000
@@ -63,16 +86,17 @@ Memory    94371840000         42  147184418816       66  222828834816  128456994
 | Schedulable | Sched | Resources that can be used to schedule pods; Available for pod requests (allocatable - requests) |
 | Free        | Free  | Resources that are outside all requests or limits |
 
-
 Example usage:
 
 Human readable format `-h`
+
 ```shell
 kubectl view-utilization -h
 Resource  Req   %R   Lim    %L  Alloc  Sched  Free
 CPU        43  71%    71  117%     60     17     0
 Memory    88G  37%  138G   58%   237G   149G   99G
 ```
+
 Check utilization for specific namespace `-n`
 
 ```shell
@@ -93,9 +117,10 @@ Memory    30G  33%  47G   52%    89G    59G   42G
 ```
 
 Overview of namespace utilization `kubectl view-utilization namespaces`
+
 ```shell
 kubectl view-utilization namespaces -h
-             CPU        Memory      
+             CPU        Memory
 Namespace     Req  Lim   Req   Lim
 analitics     6.6   10   14G   21G
 kube-system   3.5  4.2  5.1G  7.6G
@@ -106,6 +131,7 @@ rc            6.6   10   14G   21G
 ```
 
 Output to JSON format.
+
 ```shell
 kubectl view-utilization -o json | jq
 {
@@ -139,6 +165,7 @@ alias kvu="kubectl view-utilization -h"
 Now you can use `kvu` alias to quickly show resource usage
 
 Example commands:
+
 ```shell
 kvu
 kvu namespaces
@@ -151,9 +178,8 @@ kvu -n kube-system
 
 See the [CHANGELOG](CHANGELOG.md) file for details.
 
-
 ## Developing
 
 1. Clone this repo with git
-2. Test locally with kubectl pointing to your cluster (minikube or full cluster)
-3. Run unit tests `make test`
+1. Test locally with kubectl pointing to your cluster (minikube or full cluster)
+1. Run unit tests `make test`

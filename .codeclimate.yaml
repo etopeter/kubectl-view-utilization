@@ -1,0 +1,7 @@
+plugins:
+  markdownlint:
+    enabled: true
+    issue_override:
+      severity: info
+  shellcheck:
+    enabled: true
