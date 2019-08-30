@@ -19,5 +19,5 @@ script:
 - make test
 
 after_script:
-  - ./cc-test-reporter format-coverage --prefix /usr/src/app
-  - ./cc-test-reporter upload-coverage 
+  - sed -i 's/\/code/\/home\/travis\/build\/etopeter\/kubectl-view-utilization/g' ./coverage/.resultset.json
+  - ./cc-test-reporter after-build
