@@ -1,6 +1,9 @@
 #!/usr/bin/env bats
 set -a
 
+load helper_functions
+load mocks/kubectl
+
 @test "[a1] kubectl view utilization -v" {
 
     run /code/kubectl-view-utilization -v
@@ -14,9 +17,9 @@ set -a
     run /code/kubectl-view-utilization --help
     [ $status -eq 0 ]
     echo "output = ${output}"
-    [[ "${lines[1]}" == "-n[--namespace]     filter by namespace" ]]
-    [[ "${lines[4]}" == "-h                  human readable" ]]
-    [[ "${lines[6]}" == "--help              prints help" ]]
+    [[ "${lines[1]}" == "-n[--namespace]     Filter by namespace" ]]
+    [[ "${lines[4]}" == "-h                  Human readable" ]]
+    [[ "${lines[7]}" == "--help              Prints help" ]]
 }
 
 @test "[a3] kubectl view utilization --unknown" {
@@ -131,3 +134,42 @@ set -a
     echo "output = ${output}"
     [[ "${lines[0]}" == "Namespace name is required" ]]
 }
+
+@test "[a17] kubectl view utilization --context" {
+
+    run /code/kubectl-view-utilization --context
+
+    [ $status -eq 1 ]
+    echo "output = ${output}"
+    [[ "${lines[0]}" == "The name of kubeconfig context name is required" ]]
+}
+
+@test "[a18] kubectl view utilization --context=" {
+
+    run /code/kubectl-view-utilization --context=
+
+    [ $status -eq 1 ]
+    echo "output = ${output}"
+    [[ "${lines[0]}" == "The name of kubeconfig context name is required" ]]
+}
+
+@test "[a19] kubectl view utilization --context=unknown-context" {
+
+    use_awk gawk 
+    run /code/kubectl-view-utilization --context unknown
+
+    echo "output = ${output}"
+    [ $status -eq 1 ]
+    echo "output = ${output}"
+    [[ "${lines[0]}" == "Context error" ]]
+}
+
+
+@test "[a20] kubectl view utilization unknown" {
+
+    run /code/kubectl-view-utilization unknown
+    [ $status -eq 1 ]
+    echo "output = ${output}"
+    [[ "${lines[0]}" == "Unknown argument: unknown" ]]
+}
+

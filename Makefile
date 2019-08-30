@@ -1,8 +1,11 @@
 .PHONY: test 
 
 
-all: test
+all: test build
 
 test:
-	docker run --rm -it -v $(CURDIR):/code etopeter/kubectl-utilization-test:latest /usr/local/bin/bats /code/test
+	docker run --rm -it -v $(CURDIR):/code -w /code etopeter/kubectl-utilization-test:latest bashcov -s --root ./ -- /usr/local/bin/bats test/*.bats
+
+build:
+	docker build -t etopeter/kubectl-utilization-test:latest ./test
 

@@ -1,3 +1,6 @@
+env:
+  global:
+    - CC_TEST_REPORTER_ID=a77bbba5cd4db87f8600586f3965e748a1d2ee0a4998ae5a6bcd74abf230e3fd
 language: generic
 
 services:
@@ -7,5 +10,14 @@ before_install:
 - docker pull etopeter/kubectl-utilization-test
 - mkdir coverage && sudo chown 1000 coverage
 
+before_script:
+  - curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
+  - chmod +x ./cc-test-reporter
+  - ./cc-test-reporter before-build
+
 script:
 - make test
+
+after_script:
+  - sed -i 's/\/code/\/home\/travis\/build\/etopeter\/kubectl-view-utilization/g' ./coverage/.resultset.json
+  - ./cc-test-reporter after-build
