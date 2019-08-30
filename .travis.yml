@@ -19,5 +19,5 @@ script:
 - make test
 
 after_script:
-  - ./test-reporter format-coverage -d -t simplecov coverage/.resultset.json
-  - ./cc-test-reporter upload-coverage -d -s 5
+  - ./cc-test-reporter format-coverage --prefix /usr/src/app
+  - ./cc-test-reporter upload-coverage 
