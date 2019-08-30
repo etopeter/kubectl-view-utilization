@@ -11,7 +11,9 @@ https://github.com/etopeter/kubectl-view-utilization/blob/master/LICENSE
 https://img.shields.io/badge/contributions-welcome-brightgreen.svg?style=flat)](
 https://github.com/etopeter/kubectl-view-utilization/issues)
 
-<img align="left" src="static/view-utilization.png" alt="view-utilization" width=96>
+<p align="center">
+<img src="static/view-utilization.png" alt="view-utilization" width=96>
+</p>
 
 `view-utilization` kubectl plugin that shows cluster resource utilization. It is written in
 BASH/awk and uses kubectl tool to gather information. You can use it to
