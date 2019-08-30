@@ -136,6 +136,28 @@ get_node_data() {
     kubectl $context get nodes $node_label --field-selector=spec.unschedulable=false -o=jsonpath="{range .items[*]}{.metadata.name}{'\t'}{.status.allocatable.cpu}{'\t'}{.status.allocatable.memory}{'\n'}{end}"
 }
 
+test_kubectl_context() {
+    local output
+
+    # Check if context exists in kubeconfig
+    output=$(kubectl config get-contexts ${VIEW_UTILIZATION_CONTEXT} --no-headers | awk '{print $1;}')
+
+    if [ "${output}" == "${VIEW_UTILIZATION_CONTEXT}" ]; then
+        context="--context=${VIEW_UTILIZATION_CONTEXT}"
+    else
+        echo "Context error"
+        exit 1
+    fi
+
+
+    # Check access to API Group v1
+    #output=$(kubectl $context api-versions|awk '/^v1$/')
+    #if [ "${output}" != "v1" ]; then
+    #    echo "kubectl connection error"
+    #    exit 1
+    #fi
+}
+
 
 cluster_utilization() {
 
@@ -472,6 +494,7 @@ while [ "$#" -gt 0 ]; do
                 exit 1
             fi
             VIEW_UTILIZATION_CONTEXT="${2}";
+            test_kubectl_context
             shift 2
             ;;
         --context=*)
@@ -480,6 +503,7 @@ while [ "$#" -gt 0 ]; do
                 exit 1
             fi
             VIEW_UTILIZATION_CONTEXT="${1#*=}";
+            test_kubectl_context
             shift 1
             ;;
         -h)
@@ -522,7 +546,7 @@ while [ "$#" -gt 0 ]; do
             exit 1
             ;;
         *)
-            echo "Unknown arument: $1" >&2;
+            echo "Unknown argument: $1" >&2;
             exit 1
             ;;
     esac

@@ -1,6 +1,9 @@
 #!/usr/bin/env bats
 set -a
 
+load helper_functions
+load mocks/kubectl
+
 @test "[a1] kubectl view utilization -v" {
 
     run /code/kubectl-view-utilization -v
@@ -149,3 +152,24 @@ set -a
     echo "output = ${output}"
     [[ "${lines[0]}" == "The name of kubeconfig context name is required" ]]
 }
+
+@test "[a19] kubectl view utilization --context=unknown-context" {
+
+    use_awk gawk 
+    run /code/kubectl-view-utilization --context unknown
+
+    echo "output = ${output}"
+    [ $status -eq 1 ]
+    echo "output = ${output}"
+    [[ "${lines[0]}" == "Context error" ]]
+}
+
+
+@test "[a20] kubectl view utilization unknown" {
+
+    run /code/kubectl-view-utilization unknown
+    [ $status -eq 1 ]
+    echo "output = ${output}"
+    [[ "${lines[0]}" == "Unknown argument: unknown" ]]
+}
+

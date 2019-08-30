@@ -362,11 +362,42 @@ load mocks/kubectl
 
     run /code/kubectl-view-utilization -o text --context=cluster-big
 
+    echo "${output}"
     [ $status -eq 0 ]
     echo "${output}"
     [[ "${lines[0]}" == "Resource      Requests  %Requests  Limits  %Limits    Allocatable    Schedulable           Free" ]]
     [[ "${lines[1]}" == "CPU              98878         18       0        0         538416         439538         439538" ]]
     [[ "${lines[2]}" == "Memory    154268598272          8       0        0  1790902091776  1636633493504  1636633493504" ]]
+}
+
+@test "[u27] cluster-small (gawk)> kubectl view utilization namespace kube-system" {
+
+    use_awk gawk 
+    switch_context cluster-small
+
+    run /code/kubectl-view-utilization -o text -n kube-system
+
+    echo "${output}"
+    [ $status -eq 0 ]
+    echo "${output}"
+    [[ "${lines[0]}" == "Resource  Requests  %Requests     Limits  %Limits  Allocatable  Schedulable        Free" ]]
+    [[ "${lines[1]}" == "CPU             10          1         40        4          898          888         858" ]]
+    [[ "${lines[2]}" == "Memory    67108864          2  134217728        4   2767106048   2699997184  2632888320" ]]
+}
+
+@test "[u28] cluster-medium (gawk)> kubectl view utilization namespace kube-system" {
+
+    use_awk gawk 
+    switch_context cluster-big
+
+    run /code/kubectl-view-utilization --namespace=kube-system
+
+    echo "${output}"
+    [ $status -eq 0 ]
+    echo "${output}"
+    [[ "${lines[0]}" == "Resource   Requests  %Requests  Limits  %Limits    Allocatable    Schedulable           Free" ]]
+    [[ "${lines[1]}" == "CPU             270          0       0        0         538416         538146         538146" ]]
+    [[ "${lines[2]}" == "Memory    455081984          0       0        0  1790902091776  1790447009792  1790447009792" ]]
 }
 
 

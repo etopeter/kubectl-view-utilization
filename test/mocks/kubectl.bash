@@ -12,6 +12,22 @@ kubectl() {
         echo "${KUBECTL_CONTEXT}"
     fi
 
+    if [ "${1}" == "config" ] && [ "${2}" == "get-contexts" ] && [ "${3}" == "unknown" ] && [ "${4}" == "--no-headers" ]; then
+        echo "Context error"
+    fi
+
+    if [ "${1}" == "config" ] && [ "${2}" == "get-contexts" ] && [ "${3}" == "cluster-small" ] && [ "${4}" == "--no-headers" ]; then
+        echo "cluster-small"
+    fi
+
+    if [ "${1}" == "config" ] && [ "${2}" == "get-contexts" ] && [ "${3}" == "cluster-medium" ] && [ "${4}" == "--no-headers" ]; then
+        echo "cluster-medium"
+    fi
+
+    if [ "${1}" == "config" ] && [ "${2}" == "get-contexts" ] && [ "${3}" == "cluster-big" ] && [ "${4}" == "--no-headers" ]; then
+        echo "cluster-big"
+    fi
+
 
     if [[ "${1}" == *"--context="* ]] && [ -n "${1#*=}" ]; then
         KUBECTL_CONTEXT="${1#*=}"
@@ -32,6 +48,11 @@ kubectl() {
     # get all pod requests and with namespaces
     if [ "${1}" == "get" ] && [ "${2}" == "pod" ] && [ "${3}" == "--all-namespaces" ] && [ "${4}" == "--field-selector=status.phase=Running" ] && [ "${5}" == "-o=go-template" ] && [[ "${6}" == *"get_pod_data"* ]]; then
         kubectl_get_all_pods_requests_with_namespaces
+    fi
+
+    # get all pod requests in kube-system namespace
+    if [ "${1}" == "get" ] && [ "${2}" == "pod" ] && [ "${3}" == "--namespace=kube-system" ] && [ "${4}" == "--field-selector=status.phase=Running" ] && [ "${5}" == "-o=go-template" ] && [[ "${6}" == *"get_pod_data"* ]]; then
+        kubectl_get_all_pods_requests_with_namespaces | grep "kube-system" 
     fi
 
 }
