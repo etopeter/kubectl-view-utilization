@@ -1,4 +1,4 @@
-#!/bin/env bash
+#!/bin/bash
 
 switch_context() {
     kubectl config use-context $1

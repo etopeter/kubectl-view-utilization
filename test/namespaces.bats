@@ -44,12 +44,12 @@ load mocks/kubectl
     [[ "${lines[0]}" == '{"default": {"CPU": {"requested": 60,"limits": 300},"Memory": {"requested": 314572800,"limits": 524390400}},"kube-system": {"CPU": {"requested": 10,"limits": 40},"Memory": {"requested": 67108864,"limits": 134217728}}}' ]]
 }
 
-@test "[ns4] cluster-small (mawk)> kubectl view-utilization namespaces" {
+@test "[ns4] cluster-small (mawk)> kubectl view-utilization namespace" {
 
     use_awk mawk
     switch_context cluster-small
 
-    run /code/kubectl-view-utilization namespaces
+    run /code/kubectl-view-utilization namespace
 
     [ $status -eq 0 ]
     echo "${output}"
@@ -58,12 +58,12 @@ load mocks/kubectl
     [[ "${lines[2]}" == "kube-system            10          40         67108864      134217728" ]]
 }
 
-@test "[ns5] cluster-small (original-awk)> kubectl view-utilization namespaces" {
+@test "[ns5] cluster-small (original-awk)> kubectl view-utilization namespace" {
 
     use_awk original-awk
     switch_context cluster-small
 
-    run /code/kubectl-view-utilization namespaces
+    run /code/kubectl-view-utilization namespace
 
     [ $status -eq 0 ]
     echo "${output}"
@@ -72,12 +72,12 @@ load mocks/kubectl
     [[ "${lines[2]}" == "kube-system            10          40         67108864      134217728" ]]
 }
 
-@test "[ns6] cluster-medium (gawk)> kubectl view-utilization namespaces" {
+@test "[ns6] cluster-medium (gawk)> kubectl view-utilization namespace" {
 
     use_awk gawk
     switch_context cluster-medium
 
-    run /code/kubectl-view-utilization namespaces
+    run /code/kubectl-view-utilization namespace
 
     [ $status -eq 0 ]
     echo "${output}"
