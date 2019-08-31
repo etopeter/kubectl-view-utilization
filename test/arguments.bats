@@ -19,9 +19,11 @@ load mocks/kubectl
     echo "output = ${output}"
     [[ "${lines[1]}" == "-n[--namespace]     Filter by namespace" ]]
     [[ "${lines[4]}" == "-h                  Human readable" ]]
-    [[ "${lines[7]}" == "--help              Prints help" ]]
+    [[ "${lines[5]}" == "--context           The name of the kubeconfig context to use" ]]
+    [[ "${lines[6]}" == "--no-headers        Disable printing headers" ]]
+    [[ "${lines[8]}" == "--help              Prints help" ]]
 }
-
+   
 @test "[a3] kubectl view utilization --unknown" {
 
     run /code/kubectl-view-utilization --unknown
