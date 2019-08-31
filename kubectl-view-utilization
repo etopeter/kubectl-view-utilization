@@ -24,6 +24,7 @@ VIEW_UTILIZATION_OUTPUT="text"
 VIEW_UTILIZATION_SUBCOMMAND=""
 VIEW_UTILIZATION_UNITS="full"
 VIEW_UTILIZATION_CONTEXT=""
+VIEW_UTILIZATION_HEADERS="true"
 
 print_plugin_version() {
     echo "${PLUGIN_VERSION}"
@@ -38,6 +39,7 @@ print_help() {
     echo "-o[--output]        Output [text/json] default text" >&2
     echo "-h                  Human readable" >&2
     echo "--context           The name of the kubeconfig context to use" >&2
+    echo "--no-headers        Disable printing headers" >&2
     echo "-v                  Prints version" >&2
     echo "--help              Prints help" >&2
     echo "subcommands:" >&2
@@ -360,6 +362,166 @@ namespace_utilization() {
         "${VIEW_UTILIZATION_AWK_FN}${awkcmd}" <(get_pod_data)
 }
 
+node_utilization() {
+
+    # shellcheck disable=SC2016
+    awkcmd='BEGIN {FS="\t"};
+    NR==FNR { nodes[$1]; }
+
+    NR==FNR && $2 ~ /[0-9]$/ { alloc_cpu[$1]+=$2*1000; };
+    NR==FNR && $2 ~ /m?$/    { alloc_cpu[$1]+=$2; };
+    NR==FNR && $3 ~ /Ki?$/   { alloc_mem[$1]+=$3*1024; next };
+
+    # CPU requests
+    $3 ~ /[0-9]$/ { req_cpu[$2]+=$3*1000; };
+    $3 ~ /m?$/    { req_cpu[$2]+=$3; };
+
+    # memory requests
+    $4 ~ /m$/         { req_mem[$2]+=$4/1000; };   # there is a bug where bytes are given a unit of "m" but multiplied by 1000
+    $4 ~ /[kK](i)?$/  { req_mem[$2]+=$4*1024; };
+    $4 ~ /M(i)?$/     { req_mem[$2]+=$4*1048576; };
+    $4 ~ /[gG](i)?$/  { req_mem[$2]+=$4*1073741824; };
+    $4 ~ /[tT](i)?$/  { req_mem[$2]+=$4*1099511627776; };
+
+    # CPU limits
+    $5 ~ /[0-9]$/ { lim_cpu[$2]+=$5*1000; };
+    $5 ~ /m?$/    { lim_cpu[$2]+=$5; };
+
+    # memory limits
+    $6 ~ /m$/         { lim_mem[$2]+=$6/1000; next };  # there is a bug where bytes are given a unit of "m" but multiplied by 1000
+    $6 ~ /[kK](i)?$/  { lim_mem[$2]+=$6*1024; next };
+    $6 ~ /M(i)?$/     { lim_mem[$2]+=$6*1048576; next };
+    $6 ~ /[gG](i)?$/  { lim_mem[$2]+=$6*1073741824; next };
+    $6 ~ /[tT](i)?$/  { lim_mem[$2]+=$6*1099511627776; next };
+
+    END {
+
+        total_records=0;
+        for (node in nodes) {
+            total_records++;
+            noindex[total_records]=node;
+            if (longest_node_len < length(node)) longest_node_len = length(node)
+        }
+        if (longest_node_len < 9 ) longest_node_len = 9
+
+        # sort nodes alphabetically
+        a_sort(noindex)
+
+        if ( output == "text" ) {
+
+            req_cpu_header=prettify("Requests", "Req")
+            percent_req_cpu_header=prettify("%Requests", "%R")
+            req_mem_header=prettify("Requests", "Req")
+            percent_req_mem_header=prettify("%Requests", "%R")
+            lim_cpu_header=prettify("Limits", "Lim")
+            percent_lim_cpu_header=prettify("%Limits", "%L")
+            lim_mem_header=prettify("Limits", "Lim")
+            percent_lim_mem_header=prettify("%Limits", "%L")
+
+            # Calculate header width
+            req_cpu_width=length(req_cpu_header)
+            percent_req_cpu_width=length(percent_req_cpu_header)
+            if (percent_req_cpu_width < 3 ) percent_req_cpu_width = 3
+
+            req_mem_width=length(req_mem_header)
+            percent_req_mem_width=length(percent_req_mem_header)
+
+            if (percent_req_mem_width < 3 ) percent_req_mem_width = 3
+
+            lim_cpu_width=length(lim_cpu_header)
+            lim_mem_width=length(lim_mem_header)
+            percent_lim_cpu_width=length(percent_lim_cpu_header)
+            if (percent_lim_cpu_width < 3 ) percent_lim_cpu_width = 3
+
+            req_mem_width=length(req_mem_header)
+            percent_lim_mem_width=length(percent_lim_mem_header)
+            if (percent_lim_mem_width < 3 ) percent_lim_mem_width = 3
+
+
+            for (z = 1; z in noindex; z++) {
+
+                req_cpu_text[z]=prettify(req_cpu[noindex[z]], cpu_pretty(req_cpu[noindex[z]]))
+                req_mem_text[z]=prettify(sprintf("%.0f",req_mem[noindex[z]]), mem_pretty(req_mem[noindex[z]]))
+                lim_cpu_text[z]=prettify(lim_cpu[noindex[z]], cpu_pretty(lim_cpu[noindex[z]]))
+                lim_mem_text[z]=prettify(sprintf("%.0f",lim_mem[noindex[z]]), mem_pretty(lim_mem[noindex[z]]))
+
+                percent_req_cpu_text[z]=prettify(calc_percentage(req_cpu[noindex[z]], alloc_cpu[noindex[z]]), sprintf("%s%%", calc_percentage(req_cpu[noindex[z]], alloc_cpu[noindex[z]])))
+                percent_req_mem_text[z]=prettify(calc_percentage(req_mem[noindex[z]], alloc_mem[noindex[z]]), sprintf("%s%%", calc_percentage(req_mem[noindex[z]], alloc_mem[noindex[z]])))
+
+                req_cpu_width=(req_cpu_width < length(req_cpu_text[z]))? length(req_cpu_text[z]): req_cpu_width
+                req_mem_width=(req_mem_width < length(req_mem_text[z]))? length(req_mem_text[z]): req_mem_width
+                lim_cpu_width=(lim_cpu_width < length(lim_cpu_text[z]))? length(lim_cpu_text[z]): lim_cpu_width
+                lim_mem_width=(lim_mem_width < length(lim_mem_text[z]))? length(lim_mem_text[z]): lim_mem_width
+
+
+                percent_lim_cpu_text[z]=prettify(calc_percentage(lim_cpu[noindex[z]], alloc_cpu[noindex[z]]), sprintf("%s%%", calc_percentage(lim_cpu[noindex[z]], alloc_cpu[noindex[z]])))
+                percent_lim_mem_text[z]=prettify(calc_percentage(lim_mem[noindex[z]], alloc_mem[noindex[z]]), sprintf("%s%%", calc_percentage(lim_mem[noindex[z]], alloc_mem[noindex[z]])))
+            }
+
+            if ( headers == "true" ) {
+                printf("%-"longest_node_len"s  ", "")
+                printf("%-"req_cpu_width"s  ", "CPU")
+                printf("%"percent_req_cpu_width"s  ", "")
+                printf("%"lim_cpu_width"s  ", "")
+                printf("%"percent_lim_cpu_width"s  ", "")
+                printf("%-"req_mem_width"s  ", "Memory")
+                printf("%"percent_req_mem_width"s  ", "")
+                printf("%"lim_mem_width"s  ", "")
+                printf("%"percent_lim_mem_width"s\n", "")
+
+
+                printf("%-"longest_node_len"s  ",     "Node")
+                printf("%"req_cpu_width"s  ",         req_cpu_header)
+                printf("%"percent_req_cpu_width"s  ", percent_req_cpu_header)
+                printf("%"lim_cpu_width"s  ",         lim_cpu_header)
+                printf("%"percent_lim_cpu_width"s  ", percent_lim_cpu_header)
+                printf("%"req_mem_width"s  ",         req_mem_header)
+                printf("%"percent_req_mem_width"s  ", percent_req_mem_header)
+                printf("%"lim_mem_width"s  ",         lim_mem_header)
+                printf("%"percent_lim_mem_width"s\n", percent_lim_mem_header)
+            }
+
+            for (z = 1; z in noindex; z++) {
+                printf("%-"longest_node_len"s  ",     noindex[z])
+                printf("%"req_cpu_width"s  ",         req_cpu_text[z])
+                printf("%"percent_req_cpu_width"s  ", percent_req_cpu_text[z])
+                printf("%"lim_cpu_width"s  ",         lim_cpu_text[z])
+                printf("%"percent_lim_cpu_width"s  ", percent_lim_cpu_text[z])
+                printf("%"req_mem_width"s  ",         req_mem_text[z])
+                printf("%"percent_req_mem_width"s  ", percent_req_mem_text[z])
+                printf("%"lim_mem_width"s  ",         lim_mem_text[z])
+                printf("%"percent_lim_mem_width"s\n", percent_lim_mem_text[z])
+            }
+        }
+
+    # TODO: fix json output
+
+        if ( output == "json" ) {
+            printf("{");
+
+            for (z = 1; z in noindex; z++) {
+                printf("\"%s\": {", noindex[z]);
+                printf("\"CPU\": {");
+                printf("\"requested\": %s,", (req_cpu[noindex[z]]=="" ? "0" : req_cpu[noindex[z]]));
+                printf("\"limits\": %s", (lim_cpu[noindex[z]]=="" ? "0" : lim_cpu[noindex[z]]));
+                printf("},");
+                printf("\"Memory\": {");
+                printf("\"requested\": %s,", (req_mem[noindex[z]]=="" ? "0" : req_mem[noindex[z]]));
+                printf("\"limits\": %s", (lim_mem[noindex[z]]=="" ? "0" : lim_mem[noindex[z]]));
+                printf("}");
+                separator = (z < total_records ? "," : "");
+                printf("}%s",separator);
+            }
+            printf("}");
+        }
+    }
+    '
+    awk -v output="${VIEW_UTILIZATION_OUTPUT}" \
+        -v units="${VIEW_UTILIZATION_UNITS}" \
+        -v headers="${VIEW_UTILIZATION_HEADERS}" \
+        "${VIEW_UTILIZATION_AWK_FN}${awkcmd}" <(get_node_data) <(get_pod_data)
+}
+
 VIEW_UTILIZATION_AWK_FN='
 function a_sort(ary,   q, x, z){
    for (q in ary)
@@ -461,6 +623,7 @@ function mem_pretty(sum){
 while [ "$#" -gt 0 ]; do
     case "$1" in
         namespace*) VIEW_UTILIZATION_SUBCOMMAND="namespaces"; shift;;
+        node*) VIEW_UTILIZATION_SUBCOMMAND="nodes"; shift;;
         -n|--namespace)
             if [[ $# -lt 2 ]]; then
                 echo "Namespace name is required"
@@ -536,6 +699,10 @@ while [ "$#" -gt 0 ]; do
             fi
             shift 1
             ;;
+        --no-headers)
+            VIEW_UTILIZATION_HEADERS="false";
+            shift 1
+            ;;
         --help)
             print_help
             ;;
@@ -550,8 +717,14 @@ while [ "$#" -gt 0 ]; do
     esac
 done
 
-if [ "${VIEW_UTILIZATION_SUBCOMMAND}" == "namespaces" ]; then
-    namespace_utilization
-else
-    cluster_utilization
-fi
+case ${VIEW_UTILIZATION_SUBCOMMAND} in
+    namespaces)
+        namespace_utilization
+        ;;
+    nodes)
+        node_utilization
+        ;;
+    *)
+        cluster_utilization
+        ;;
+esac
