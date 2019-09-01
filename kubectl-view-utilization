@@ -375,7 +375,7 @@ node_utilization() {
 
     # CPU requests
     $3 ~ /[0-9]$/ { req_cpu[$2]+=$3*1000; };
-    $3 ~ /m?$/    { req_cpu[$2]+=$3; };
+    $3 ~ /m$/    { req_cpu[$2]+=$3; };
 
     # memory requests
     $4 ~ /m$/         { req_mem[$2]+=$4/1000; };   # there is a bug where bytes are given a unit of "m" but multiplied by 1000
@@ -386,7 +386,7 @@ node_utilization() {
 
     # CPU limits
     $5 ~ /[0-9]$/ { lim_cpu[$2]+=$5*1000; };
-    $5 ~ /m?$/    { lim_cpu[$2]+=$5; };
+    $5 ~ /m$/    { lim_cpu[$2]+=$5; };
 
     # memory limits
     $6 ~ /m$/         { lim_mem[$2]+=$6/1000; next };  # there is a bug where bytes are given a unit of "m" but multiplied by 1000
@@ -494,8 +494,6 @@ node_utilization() {
                 printf("%"percent_lim_mem_width"s\n", percent_lim_mem_text[z])
             }
         }
-
-    # TODO: fix json output
 
         if ( output == "json" ) {
             printf("{");
