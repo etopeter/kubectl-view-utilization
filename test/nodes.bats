@@ -63,11 +63,11 @@ load mocks/kubectl
     [[ "${lines[5]}" == "ip-10-1-1-18.us-west-2.compute.internal      2002         12       0        0  4294967296          6       0        0" ]]
     [[ "${lines[6]}" == "ip-10-1-1-19.us-west-2.compute.internal      2002         12       0        0  4294967296          6       0        0" ]]
     [[ "${lines[7]}" == "ip-10-1-1-20.us-west-2.compute.internal      3003         18       0        0  5368709120          8       0        0" ]]
-    [[ "${lines[8]}" == "ip-10-1-1-20.us-west-2.compute.internal      3003         18       0        0  5368709120          8       0        0" ]]
-    [[ "${lines[9]}" == "ip-10-1-1-21.us-west-2.compute.internal      3003         18       0        0  5368709120          8       0        0" ]]
-    [[ "${lines[11]}" == "ip-10-1-1-21.us-west-2.compute.internal      3003         18       0        0  5368709120          8       0        0" ]]
-    [[ "${lines[12]}" == "ip-10-1-1-22.us-west-2.compute.internal      3003         18       0        0  7516192768         11       0        0" ]]
-    [[ "${lines[13]}" == "ip-10-1-1-23.us-west-2.compute.internal      3003         18       0        0  7516192768         11       0        0" ]]
-   
+    [[ "${lines[8]}" == "ip-10-1-1-21.us-west-2.compute.internal      3003         18       0        0  5368709120          8       0        0" ]]
+    [[ "${lines[9]}" == "ip-10-1-1-22.us-west-2.compute.internal      3003         18       0        0  7516192768         11       0        0" ]]
+    [[ "${lines[11]}" == "ip-10-1-1-24.us-west-2.compute.internal      2002         12       0        0  8589934592         13       0        0" ]]
+    [[ "${lines[12]}" == "ip-10-1-1-25.us-west-2.compute.internal      2002         12       0        0  8589934592         13       0        0" ]]
+    [[ "${lines[13]}" == "ip-10-1-1-26.us-west-2.compute.internal      2002         12       0        0  8589934592         13       0        0" ]]
+  
    
 }
