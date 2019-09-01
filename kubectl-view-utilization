@@ -44,6 +44,7 @@ print_help() {
     echo "--help              Prints help" >&2
     echo "subcommands:" >&2
     echo "    namespace[s]    Shows namespace utilization" >&2
+    echo "    node[s]         Shows node utilization" >&2
     exit
 }
 
@@ -150,14 +151,6 @@ test_kubectl_context() {
         echo "Context error"
         exit 1
     fi
-
-
-    # Check access to API Group v1
-    #output=$(kubectl $context api-versions|awk '/^v1$/')
-    #if [ "${output}" != "v1" ]; then
-    #    echo "kubectl connection error"
-    #    exit 1
-    #fi
 }
 
 
@@ -229,7 +222,10 @@ cluster_utilization() {
         free_width=calc_max_width("Free", free_cpu_text, free_mem_text)
 
         if ( output == "text") {
-            printf("%-8s  %"req_width"s  %"percent_req_width"s  %"lim_width"s  %"percent_lim_width"s  %"alloc_width"s  %"sched_width"s  %"free_width"s\n", "Resource", req_header, percent_req_header, lim_header, percent_lim_header, alloc_header, sched_header, "Free");
+
+            if ( headers == "true" ) {
+                printf("%-8s  %"req_width"s  %"percent_req_width"s  %"lim_width"s  %"percent_lim_width"s  %"alloc_width"s  %"sched_width"s  %"free_width"s\n", "Resource", req_header, percent_req_header, lim_header, percent_lim_header, alloc_header, sched_header, "Free");
+            }
             printf("%-8s  %"req_width"s  %"percent_req_width"s  %"lim_width"s  %"percent_lim_width"s  %"alloc_width"s  %"sched_width"s  %"free_width"s\n", "CPU", req_cpu_text, percent_req_cpu_text, lim_cpu_text, percent_lim_cpu_text, alloc_cpu_text, sched_cpu_text, free_cpu_text);
             printf("%-8s  %"req_width"s  %"percent_req_width"s  %"lim_width"s  %"percent_lim_width"s  %"alloc_width"s  %"sched_width"s  %"free_width"s\n", "Memory", req_mem_text, percent_req_mem_text, lim_mem_text, percent_lim_mem_text, alloc_mem_text, sched_mem_text, free_mem_text);
         }
@@ -258,6 +254,7 @@ cluster_utilization() {
     '
     awk -v output="${VIEW_UTILIZATION_OUTPUT}" \
         -v units="${VIEW_UTILIZATION_UNITS}" \
+        -v headers="${VIEW_UTILIZATION_HEADERS}" \
         "${VIEW_UTILIZATION_AWK_FN}${awkcmd}" <(get_node_data) <(get_pod_data)
 }
 
@@ -327,10 +324,13 @@ namespace_utilization() {
                 lim_mem_width=(lim_mem_width < length(lim_mem_text[z]))? length(lim_mem_text[z]): lim_mem_width
             }
 
-            if ( units == "human" ) {
-                printf("%-"longest_namespace_len"s  %-"req_cpu_width"s  %"lim_cpu_width"s  %-"req_mem_width"s  %"lim_mem_width"s\n", "", "CPU", "", "Memory", "")
+
+            if ( headers == "true" ) {
+                if ( units == "human" ) {
+                    printf("%-"longest_namespace_len"s  %-"req_cpu_width"s  %"lim_cpu_width"s  %-"req_mem_width"s  %"lim_mem_width"s\n", "", "CPU", "", "Memory", "")
+                }
+                printf("%-"longest_namespace_len"s  %"req_cpu_width"s  %"lim_cpu_width"s  %"req_mem_width"s  %"lim_mem_width"s\n", "Namespace", req_cpu_header, lim_cpu_header, req_mem_header, lim_mem_header)
             }
-            printf("%-"longest_namespace_len"s  %"req_cpu_width"s  %"lim_cpu_width"s  %"req_mem_width"s  %"lim_mem_width"s\n", "Namespace", req_cpu_header, lim_cpu_header, req_mem_header, lim_mem_header)
 
             for (z = 1; z in nsindex; z++) {
                 printf("%-"longest_namespace_len"s  %"req_cpu_width"s  %"lim_cpu_width"s  %"req_mem_width"s  %"lim_mem_width"s\n", nsindex[z], req_cpu_text[z], lim_cpu_text[z], req_mem_text[z], lim_mem_text[z])
@@ -359,6 +359,7 @@ namespace_utilization() {
     '
     awk -v output="${VIEW_UTILIZATION_OUTPUT}" \
         -v units="${VIEW_UTILIZATION_UNITS}" \
+        -v headers="${VIEW_UTILIZATION_HEADERS}" \
         "${VIEW_UTILIZATION_AWK_FN}${awkcmd}" <(get_pod_data)
 }
 
