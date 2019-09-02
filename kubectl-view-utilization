@@ -432,11 +432,11 @@ node_utilization() {
             lim_cpu_width=length(lim_cpu_header)
             lim_mem_width=length(lim_mem_header)
             percent_lim_cpu_width=length(percent_lim_cpu_header)
-            if (percent_lim_cpu_width < 3 ) percent_lim_cpu_width = 3
+            if (percent_lim_cpu_width < 3 ) percent_lim_cpu_width = 4
 
             req_mem_width=length(req_mem_header)
             percent_lim_mem_width=length(percent_lim_mem_header)
-            if (percent_lim_mem_width < 3 ) percent_lim_mem_width = 3
+            if (percent_lim_mem_width < 3 ) percent_lim_mem_width = 4
 
 
             for (z = 1; z in noindex; z++) {
@@ -454,12 +454,20 @@ node_utilization() {
                 lim_cpu_width=(lim_cpu_width < length(lim_cpu_text[z]))? length(lim_cpu_text[z]): lim_cpu_width
                 lim_mem_width=(lim_mem_width < length(lim_mem_text[z]))? length(lim_mem_text[z]): lim_mem_width
 
-
                 percent_lim_cpu_text[z]=prettify(calc_percentage(lim_cpu[noindex[z]], alloc_cpu[noindex[z]]), sprintf("%s%%", calc_percentage(lim_cpu[noindex[z]], alloc_cpu[noindex[z]])))
                 percent_lim_mem_text[z]=prettify(calc_percentage(lim_mem[noindex[z]], alloc_mem[noindex[z]]), sprintf("%s%%", calc_percentage(lim_mem[noindex[z]], alloc_mem[noindex[z]])))
+
+                percent_lim_cpu_graph[z]=calc_percentage(lim_cpu[noindex[z]], alloc_cpu[noindex[z]])
+                percent_lim_mem_graph[z]=calc_percentage(lim_mem[noindex[z]], alloc_mem[noindex[z]])
+                percent_lim_cpu_graph_input[z]=percent_lim_cpu_graph[z]
+                percent_lim_mem_graph_input[z]=percent_lim_mem_graph[z]
             }
 
             if ( headers == "true" ) {
+
+                printf("CPU   : %s\n", graph(percent_lim_cpu_graph_input))
+                printf("Memory: %s\n", graph(percent_lim_mem_graph_input))
+
                 printf("%-"longest_node_len"s  ", "")
                 printf("%-"req_cpu_width"s  ", "CPU")
                 printf("%"percent_req_cpu_width"s  ", "")
@@ -483,17 +491,18 @@ node_utilization() {
             }
 
             for (z = 1; z in noindex; z++) {
-                printf("%-"longest_node_len"s  ",     noindex[z])
-                printf("%"req_cpu_width"s  ",         req_cpu_text[z])
-                printf("%"percent_req_cpu_width"s  ", percent_req_cpu_text[z])
-                printf("%"lim_cpu_width"s  ",         lim_cpu_text[z])
+                printf("%-"longest_node_len"s  ",       noindex[z])
+                printf("%"req_cpu_width"s  ",           req_cpu_text[z])
+                printf("%"percent_req_cpu_width"s  ",   percent_req_cpu_text[z])
+                printf("%"lim_cpu_width"s  ",           lim_cpu_text[z])
                 printf("%"percent_lim_cpu_width"s  ", percent_lim_cpu_text[z])
-                printf("%"req_mem_width"s  ",         req_mem_text[z])
-                printf("%"percent_req_mem_width"s  ", percent_req_mem_text[z])
-                printf("%"lim_mem_width"s  ",         lim_mem_text[z])
+                printf("%"req_mem_width"s  ",           req_mem_text[z])
+                printf("%"percent_req_mem_width"s  ",   percent_req_mem_text[z])
+                printf("%"lim_mem_width"s  ",           lim_mem_text[z])
                 printf("%"percent_lim_mem_width"s\n", percent_lim_mem_text[z])
             }
         }
+
 
         if ( output == "json" ) {
             printf("{");
@@ -522,6 +531,38 @@ node_utilization() {
 }
 
 VIEW_UTILIZATION_AWK_FN='
+function graph(a){
+    result=""
+    min=0
+    max=100
+    delete overcommit
+    color_end="\033[0m"
+    split("▁ ▂ ▃ ▄ ▅ ▆ ▇ █", bars, " ");
+
+    for (n in a) {
+        if (int(a[n]) > 100) {
+            overcommit[n]=int(a[n])
+            a[n]=100
+        }
+    }
+
+    # mawk does not support lshift so we use *2^8
+    f=int(int(int(max - min)*2^8)/7)
+    if (f < 1 ) f=1
+
+    for (n in a) {
+        bar_index=int(int(int(a[n]-min)*2^8) / f )
+        if (int(overcommit[n])>125) {
+            color="\033[31m"
+        } else if (int(overcommit[n])>100) {
+            color="\033[33m"
+        } else {
+            color="\033[32m"
+        }
+        result=sprintf("%s%s%s%s", result, color, bars[bar_index], color_end)
+    }
+    return result
+}
 function a_sort(ary,   q, x, z){
    for (q in ary)
    {
