@@ -51,6 +51,7 @@ load mocks/kubectl
 
     run /code/kubectl-view-utilization namespace
 
+    echo "${output}"
     [ $status -eq 0 ]
     echo "${output}"
     [[ "${lines[0]}" == "Namespace    CPU Requests  CPU Limits  Memory Requests  Memory Limits" ]]
