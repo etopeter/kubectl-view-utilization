@@ -22,16 +22,21 @@ with this simple command **`kubectl view-utilization`**.
 
 ## Installation
 
-### Install with krew (Recommended)
+### krew (kubectl plugin manager)
 
 1. [Install krew](https://github.com/GoogleContainerTools/krew)
    plugin manager for kubectl.
 1. Run `kubectl krew install view-utilization`.
+1. Update plugin with `kubectl krew upgrade view-utilization`
 
-#### Update with krew
+### macOS
 
-Krew makes update process very simple. To update to latest version run
-`kubectl krew upgrade view-utilization`
+On macOS, plugin can be installed via [Homebrew](https://brew.sh):
+
+```shell
+brew tap etopeter/tap
+brew install kubectl-view-utilization
+```
 
 ### Install with Curl
 
@@ -57,11 +62,11 @@ kubectl plugin list
 
 ### Dependencies
 
-While we try to be as minimalistic as possible the only dependency is AWK.
+While we try to be as minimalistic as possible the only dependency is [Awk](https://www.gnu.org/software/gawk/). While GNU Awk (gawk) is recommended, `mawk` is also supported.
 
 - kubectl
 - bash
-- awk (gawk, mawk, awk)
+- awk (gawk, mawk)
 
 ## Usage
 
