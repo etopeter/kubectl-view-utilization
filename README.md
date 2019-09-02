@@ -121,8 +121,8 @@ Breakdown of node utilization `kubectl view-utilization nodes`
 ```shell
 CPU   : ▆▆▆▆▅▅▇▄▄▆▂▆
 Memory: ▇▅▆▇▇▅▅▄▆▇▁▆
-                                             CPU                 Memory               
-Node                                         Req   %R  Lim   %L  Req   %R  Lim   %L
+                                           CPU                 Memory               
+Node                                       Req   %R  Lim   %L  Req   %R  Lim   %L
 ip-10-0-0-175.us-east-1.compute.internal   8.1  53%   13   86%  24G  83%  31G  105%
 ip-10-0-0-55.us-east-1.compute.internal    6.6  43%   13   90%  19G  64%  22G   76%
 ip-10-0-18-238.us-east-1.compute.internal    7  46%   12   85%  24G  82%  25G   86%
