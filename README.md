@@ -116,6 +116,27 @@ CPU        14  64%   24  106%     22      8     0
 Memory    30G  33%  47G   52%    89G    59G   42G
 ```
 
+Breakdown of node utilization `kubectl view-utilization nodes`
+
+```shell
+CPU   : ▆▆▆▆▅▅▇▄▄▆▂▆
+Memory: ▇▅▆▇▇▅▅▄▆▇▁▆
+                                             CPU                 Memory               
+Node                                         Req   %R  Lim   %L  Req   %R  Lim   %L
+ip-10-0-0-175.us-east-1.compute.internal   8.1  53%   13   86%  24G  83%  31G  105%
+ip-10-0-0-55.us-east-1.compute.internal    6.6  43%   13   90%  19G  64%  22G   76%
+ip-10-0-18-238.us-east-1.compute.internal    7  46%   12   85%  24G  82%  25G   86%
+ip-10-0-19-235.us-east-1.compute.internal   10  67%   14   93%  27G  92%  29G   98%
+ip-10-0-21-0.us-east-1.compute.internal    9.5  63%   12   83%  25G  86%  30G  101%
+ip-10-0-28-44.us-east-1.compute.internal   6.9  45%   10   70%  20G  70%  24G   81%
+ip-10-0-3-133.us-east-1.compute.internal     6  40%   14   97%  20G  67%  24G   83%
+ip-10-0-3-24.us-east-1.compute.internal    5.9  39%   10   66%  17G  57%  19G   63%
+ip-10-0-35-119.us-east-1.compute.internal  7.7  51%   10   66%  23G  78%  28G   94%
+ip-10-0-39-146.us-east-1.compute.internal   10  66%   13   90%  25G  84%  30G  101%
+ip-10-0-40-184.us-east-1.compute.internal  3.6  23%  5.7   37%  11G  17%  13G   21%
+ip-10-0-42-24.us-east-1.compute.internal   6.6  43%   13   90%  22G  76%  26G   88%
+```
+
 Overview of namespace utilization `kubectl view-utilization namespaces`
 
 ```shell
