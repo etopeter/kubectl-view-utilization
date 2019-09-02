@@ -31,7 +31,7 @@ with this simple command **`kubectl view-utilization`**.
 
 ### macOS
 
-On macOS, plugin can be installed via [Homebrew](https://homebrew.sh):
+On macOS, plugin can be installed via [Homebrew](https://brew.sh):
 
 ```shell
 brew tap etopeter/tap
@@ -62,11 +62,11 @@ kubectl plugin list
 
 ### Dependencies
 
-While we try to be as minimalistic as possible the only dependency is AWK.
+While we try to be as minimalistic as possible the only dependency is [Awk](https://www.gnu.org/software/gawk/). While GNU Awk (gawk) is recommended, `mawk` is also supported.
 
 - kubectl
 - bash
-- awk (gawk, mawk, awk)
+- awk (gawk, mawk)
 
 ## Usage
 
