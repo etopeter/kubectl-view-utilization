@@ -17,7 +17,7 @@
 # Prints cluster resource utilization
 
 
-PLUGIN_VERSION="v0.3.0"
+PLUGIN_VERSION="v0.3.1"
 VIEW_UTILIZATION_NAMESPACE=""
 VIEW_UTILIZATION_NODE_LABEL=""
 VIEW_UTILIZATION_OUTPUT="text"
@@ -551,7 +551,7 @@ function graph(a){
     if (f < 1 ) f=1
 
     for (n in a) {
-        bar_index=int(int(int(a[n]-min)*2^8) / f )
+        bar_index=int(int(int(a[n]-min)*2^8) / f ) + 1
         if (int(overcommit[n])>125) {
             color="\033[31m"
         } else if (int(overcommit[n])>100) {
