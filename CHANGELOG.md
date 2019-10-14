@@ -1,3 +1,6 @@
+# v0.3.1
+- Fixed node view graph not showing for low utilization nodes [Issue #49](https://github.com/etopeter/kubectl-view-utilization/issues/49)
+
 # v0.3.0
 - New subcommand `nodes` shows nodes utilization breakdown with shall chart
 - Added --context parameter to switch kubeconfig contexts [Issue #36](https://github.com/etopeter/kubectl-view-utilization/issues/36)
