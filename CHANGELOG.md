@@ -1,3 +1,6 @@
+# v0.3.2
+- Fixed handling of node allocatable memory parsing [Issue #52](https://github.com/etopeter/kubectl-view-utilization/issues/52)
+
 # v0.3.1
 - Fixed node view graph not showing for low utilization nodes [Issue #49](https://github.com/etopeter/kubectl-view-utilization/issues/49)
 
