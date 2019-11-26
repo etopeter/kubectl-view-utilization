@@ -400,4 +400,18 @@ load mocks/kubectl
     [[ "${lines[2]}" == "Memory    455081984          0       0        0  1790902091776  1790447009792  1790447009792" ]]
 }
 
+@test "[u29] cluster-issue-52 (original-awk)> kubectl view utilization" {
+
+    use_awk original-awk
+    switch_context cluster-issue-52
+
+    run /code/kubectl-view-utilization
+
+    [ $status -eq 0 ]
+    echo "${output}"
+    [[ "${lines[0]}" == "Resource   Requests  %Requests     Limits  %Limits  Allocatable  Schedulable        Free" ]]
+    [[ "${lines[1]}" == "CPU             300         14        350       17         2002         1702        1652" ]]
+    [[ "${lines[2]}" == "Memory    314572800          7  419430400       10   4009754624   3695181824  3590324224" ]]
+}
+
 
