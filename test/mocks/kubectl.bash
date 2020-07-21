@@ -12,19 +12,23 @@ kubectl() {
         echo "${KUBECTL_CONTEXT}"
     fi
 
-    if [ "${1}" == "config" ] && [ "${2}" == "get-contexts" ] && [ "${3}" == "unknown" ] && [ "${4}" == "--no-headers" ]; then
+    # kubectl config get-contexts unknown -o name
+    if [ "${1}" == "config" ] && [ "${2}" == "get-contexts" ] && [ "${3}" == "unknown" ] && [ "${4}" == "-o" ] && [ "${5}" == "name" ]; then
         echo "Context error"
     fi
 
-    if [ "${1}" == "config" ] && [ "${2}" == "get-contexts" ] && [ "${3}" == "cluster-small" ] && [ "${4}" == "--no-headers" ]; then
+    # kubectl config get-contexts cluster-small -o name
+    if [ "${1}" == "config" ] && [ "${2}" == "get-contexts" ] && [ "${3}" == "cluster-small" ] && [ "${4}" == "-o" ] && [ "${5}" == "name" ]; then
         echo "cluster-small"
     fi
 
-    if [ "${1}" == "config" ] && [ "${2}" == "get-contexts" ] && [ "${3}" == "cluster-medium" ] && [ "${4}" == "--no-headers" ]; then
+    # kubectl config get-contexts cluster-medium -o name
+    if [ "${1}" == "config" ] && [ "${2}" == "get-contexts" ] && [ "${3}" == "cluster-medium" ] && [ "${4}" == "-o" ] && [ "${5}" == "name" ]; then
         echo "cluster-medium"
     fi
 
-    if [ "${1}" == "config" ] && [ "${2}" == "get-contexts" ] && [ "${3}" == "cluster-big" ] && [ "${4}" == "--no-headers" ]; then
+    # kubectl config get-contexts cluster-big -o name
+    if [ "${1}" == "config" ] && [ "${2}" == "get-contexts" ] && [ "${3}" == "cluster-big" ] && [ "${4}" == "-o" ] && [ "${5}" == "name" ]; then
         echo "cluster-big"
     fi
 
