@@ -143,7 +143,7 @@ test_kubectl_context() {
     local output
 
     # Check if context exists in kubeconfig
-    output=$(kubectl config get-contexts ${VIEW_UTILIZATION_CONTEXT} --no-headers | awk '{print $1;}')
+    output=$(kubectl config get-contexts ${VIEW_UTILIZATION_CONTEXT} -o name)
 
     if [ "${output}" == "${VIEW_UTILIZATION_CONTEXT}" ]; then
         context="--context=${VIEW_UTILIZATION_CONTEXT}"
