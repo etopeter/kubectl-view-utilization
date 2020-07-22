@@ -1,3 +1,8 @@
+# v0.3.3
+- Fixed node memory parsing when memory reports as integers without units [Issue #55](https://github.com/etopeter/kubectl-view-utilization/issues/56)
+- Fixed context verification [Issue #55](https://github.com/etopeter/kubectl-view-utilization/issues/55)
+- Fixed utilization view not displaying when requests are set to 0 in normal mode
+
 # v0.3.2
 - Fixed handling of node allocatable memory parsing [Issue #52](https://github.com/etopeter/kubectl-view-utilization/issues/52)
 
