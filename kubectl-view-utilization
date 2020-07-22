@@ -162,6 +162,7 @@ cluster_utilization() {
 
     NR==FNR && $2 ~ /[0-9]$/    { alloc_cpu+=$2*1000; };
     NR==FNR && $2 ~ /m?$/       { alloc_cpu+=$2; };
+    NR==FNR && $3 ~ /[0-9]$/    { alloc_mem+=$3; next };
     NR==FNR && $3 ~ /[kK](i)?$/ { alloc_mem+=$3*1024; next };
     NR==FNR && $3 ~ /M(i)?$/    { alloc_mem+=$3*1048576; next };
     NR==FNR && $3 ~ /[gG](i)?$/ { alloc_mem+=$3*1073741824; next };
@@ -189,7 +190,7 @@ cluster_utilization() {
     $2 in node && $6 ~ /[tT](i)?$/  { lim_mem+=$6*1099511627776; next };
     END {
 
-        req_cpu_text=prettify(req_cpu, cpu_pretty(req_cpu))
+        req_cpu_text=prettify(sprintf("%.0f",req_cpu), cpu_pretty(req_cpu))
         req_mem_text=prettify(sprintf("%.0f",req_mem), mem_pretty(req_mem))
         req_header=prettify("Requests", "Req")
         req_width=calc_max_width(req_header, req_cpu_text, req_mem_text)
