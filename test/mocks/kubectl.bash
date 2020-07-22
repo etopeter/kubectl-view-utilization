@@ -1,7 +1,13 @@
 #!/bin/bash
-
 kubectl() {
-    local clusters=(cluster-small cluster-medium cluster-big cluster-bug1 cluster-issue-52)
+    local clusters=(
+        cluster-small
+        cluster-medium
+        cluster-big
+        cluster-bug1
+        cluster-issue-52
+        cluster-issue-56
+    )
 
     if [ "${1}" == "config" ] && [ "${2}" == "use-context" ] && [[ "${clusters[*]}" =~ $3 ]]; then
         KUBECTL_CONTEXT="${3}"
@@ -49,6 +55,12 @@ kubectl() {
         kubectl_get_master_nodes_requests
     fi
 
+    # get worker nodes form cluster issue-56
+    if [ "${1}" == "get" ] && [ "${2}" == "nodes" ] && [ "${3}" == "-l" ] && [ "${4}" == "role=kube-worker" ] && [ "${5}" == "--field-selector=spec.unschedulable=false" ] && [ "${6}" == "-o=jsonpath={range .items[*]}{.metadata.name}{'\t'}{.status.allocatable.cpu}{'\t'}{.status.allocatable.memory}{'\n'}{end}" ]; then
+        kubectl_get_all_nodes_requests "role=kube-worker"
+    fi
+
+
     # get all pod requests and with namespaces
     if [ "${1}" == "get" ] && [ "${2}" == "pod" ] && [ "${3}" == "--all-namespaces" ] && [ "${4}" == "--field-selector=status.phase=Running" ] && [ "${5}" == "-o=go-template" ] && [[ "${6}" == *"get_pod_data"* ]]; then
         kubectl_get_all_pods_requests_with_namespaces
@@ -63,6 +75,7 @@ kubectl() {
 
 
 kubectl_get_all_nodes_requests() {
+    local label=$1
 
     if [ "${KUBECTL_CONTEXT}" == "cluster-bug1" ]; then 
         echo "ip-10-1-1-10.us-west-2.compute.internal	2	1351126Ki"
@@ -72,6 +85,27 @@ kubectl_get_all_nodes_requests() {
     if [ "${KUBECTL_CONTEXT}" == "cluster-issue-52" ]; then
         echo "ip-10-1-1-10.us-west-2.compute.internal	1	2250Mi"
         echo "ip-10-1-1-11.us-west-2.compute.internal	1	1574Mi"
+    fi
+
+    if [ "${KUBECTL_CONTEXT}" == "cluster-issue-56" ] && [ "${label}" == "" ]; then
+        echo "ip-10-45-17-163.eu-central-1.compute.internal	28	60768081688"
+        echo "ip-10-45-18-16.eu-central-1.compute.internal	28	60768081688"
+        echo "ip-10-45-18-56.eu-central-1.compute.internal	36	71828568Ki"
+        echo "ip-10-45-21-153.eu-central-1.compute.internal	28	60768081688"
+        echo "ip-10-45-22-223.eu-central-1.compute.internal	28	60768081688"
+        echo "ip-10-45-23-121.eu-central-1.compute.internal	36	71828568Ki"
+        echo "ip-10-45-24-151.eu-central-1.compute.internal	28	60768073701"
+        echo "ip-10-45-24-23.eu-central-1.compute.internal	36	71828568Ki"
+        echo "ip-10-45-24-8.eu-central-1.compute.internal	28	60768073701"
+    fi
+
+    if [ "${KUBECTL_CONTEXT}" == "cluster-issue-56" ] && [ "${label}" == "role=kube-worker" ]; then
+        echo "ip-10-45-17-163.eu-central-1.compute.internal	28	60768081688"
+        echo "ip-10-45-18-16.eu-central-1.compute.internal	28	60768081688"
+        echo "ip-10-45-21-153.eu-central-1.compute.internal	28	60768081688"
+        echo "ip-10-45-22-223.eu-central-1.compute.internal	28	60768081688"
+        echo "ip-10-45-24-151.eu-central-1.compute.internal	28	60768073701"
+        echo "ip-10-45-24-8.eu-central-1.compute.internal	28	60768073701"
     fi
 
 

@@ -414,4 +414,44 @@ load mocks/kubectl
     [[ "${lines[2]}" == "Memory    314572800          7  419430400       10   4009754624   3695181824  3590324224" ]]
 }
 
+@test "[u30] cluster-issue-56 (original-awk)> kubectl view utilization" {
 
+    use_awk original-awk
+    switch_context cluster-issue-56
+
+    run /code/kubectl-view-utilization
+
+    [ $status -eq 0 ]
+    echo "${output}"
+    [[ "${lines[0]}" == "Resource  Requests  %Requests  Limits  %Limits   Allocatable   Schedulable          Free" ]]
+    [[ "${lines[1]}" == "CPU              0          0                0        276276        276276        276276" ]]
+    [[ "${lines[2]}" == "Memory           0          0                0  585265835050  585265835050  585265835050" ]]
+}
+
+@test "[u31] cluster-issue-56 (original-awk)> kubectl view utilization -h" {
+
+    use_awk original-awk
+    switch_context cluster-issue-56
+
+    run /code/kubectl-view-utilization -h
+
+    [ $status -eq 0 ]
+    echo "${output}"
+    [[ "${lines[0]}" == "Resource  Req  %R  Lim  %L  Alloc  Sched  Free" ]]
+    [[ "${lines[1]}" == "CPU         0  0%    0  0%    276    276   276" ]]
+    [[ "${lines[2]}" == "Memory      0  0%    0  0%   545G   545G  545G" ]]
+}
+
+@test "[u32] cluster-issue-56 (original-awk)> kubectl view utilization -h" {
+
+    use_awk original-awk
+    switch_context cluster-issue-56
+
+    run /code/kubectl-view-utilization -h -l role=kube-worker
+
+    [ $status -eq 0 ]
+    echo "${output}"
+    [[ "${lines[0]}" == "Resource  Req  %R  Lim  %L  Alloc  Sched  Free" ]]
+    [[ "${lines[1]}" == "CPU         0  0%    0  0%    168    168   168" ]]
+    [[ "${lines[2]}" == "Memory      0  0%    0  0%   340G   340G  340G" ]]
+}
