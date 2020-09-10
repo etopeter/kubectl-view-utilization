@@ -239,7 +239,7 @@ cluster_utilization() {
             printf("\"CPU\": {");
             printf("\"requested\": "quotes"%s"quotes",", req_cpu_text);
             printf("\"limits\": "quotes"%s"quotes",", lim_cpu_text);
-            printf("\"allocatable\": "quotes"%s"quotes",", alloc_cpu);
+            printf("\"allocatable\": "quotes"%s"quotes",", alloc_cpu_text);
             printf("\"schedulable\": "quotes"%s"quotes",", sched_cpu_text);
             printf("\"free\": "quotes"%s"quotes"", free_cpu_text);
             printf("},");
