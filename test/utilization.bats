@@ -44,6 +44,19 @@ load mocks/kubectl
     [[ "${lines[0]}" == '{"CPU": {"requested": 70,"limits": 340,"allocatable": 898,"schedulable": 828,"free": 558},"Memory": {"requested": 381681664,"limits": 658608128,"allocatable": 2767106048,"schedulable": 2385424384,"free": 2108497920}}' ]]
 }
 
+@test "[u3.1] cluster-small (gawk)> kubectl view utilization output to json human readable" {
+
+    use_awk gawk 
+    switch_context cluster-small
+
+    run /code/kubectl-view-utilization -h -o json
+
+    [ $status -eq 0 ]
+    echo "${output}"
+    [[ "${lines[0]}" == '{"CPU": {"requested": "0.07","limits": "0.34","allocatable": "0.9","schedulable": "0.83","free": "0.56"},"Memory": {"requested": "364M","limits": "628M","allocatable": "2.6G","schedulable": "2.2G","free": "2G"}}' ]]
+}
+
+
 @test "[u4] cluster-small (gawk)> kubectl view-utilization masters" {
 
     use_awk gawk
