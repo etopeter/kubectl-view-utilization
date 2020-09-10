@@ -84,9 +84,9 @@ Memory    94371840000         42  147184418816       66  222828834816  128456994
 | Column      | Short | Description |
 |-------------|-------|-------------|
 | Requests    | Req   | Calculated total pod requests across all namespaces |
-| %Requests   | %R    | Percentage of total requests agains allocatable requests |
+| %Requests   | %R    | Percentage of total requests against allocatable requests |
 | Limits      | Lim   | Calculated total pod limits across all namespaces  |
-| %Limits     | %L    | Percentage of tatal limits agains allocatable limits |
+| %Limits     | %L    | Percentage of total limits against allocatable limits |
 | Allocatable | Alloc | Available allocatable resources |
 | Schedulable | Sched | Resources that can be used to schedule pods; Available for pod requests (allocatable - requests) |
 | Free        | Free  | Resources that are outside all requests or limits |
